@@ -1,15 +1,78 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes fall {
+  0% {
+    transform: translateY(-100vh);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    text-shadow: 0 0 5px #0f0, 0 0 10px #0f0, 0 0 15px #0f0;
+  }
+  50% {
+    text-shadow: none;
+  }
+}
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-display: "Roboto", sans-serif; /* Google Font */
+  --font-mono: "Roboto Mono", monospace; /* Google Font */
+  --color-primary: #4B5320; /* Cadia Green*/
+  --color-primary-dark: #7A994B; /* Light Cadia Green */
+  --color-secondary: #D2B48C; /* Canvas Tan */
+  --color-secondary-dark: #D2B48C; /* Canvas Tan */ 
+  --color-accent: #DC143C; /* Crimson */
+  --color-accent-dark: #FF4C4C; /* Bright Crimson */
+  --color-background: #F4F4F5; /* Very light grey */
+  --color-background-dark: #18181B; /* Near Black */
+  --color-surface: #ffffff; /* white */
+  --color-surface-dark: #27272A; /* Dark Grey */
+  --color-border: #e5e5e5; /* neutral-200 */
+  --color-border-dark: #3F3F3F; /* neutral-600 */
+  --color-text: #18181B; /* Near Black */
+  --color-text-secondary: #2B2B2B; /* Dark Grey */
+  --color-text-dark: #EAEAEA; /* Soft light grey*/
+  --color-text-secondary-dark: #A3A3A3; /* Light Grey */
+  --color-success: #2ECC71; /* Emerald */
+  --color-error: #E74C3C; /* Red */
+  --color-warning: #F1C40F; /* Yellow */
+
+  --color-google-text: #3c4043; /* Google text color */
+  --color-google-button-blue: #1a73e8; /* Google button blue */
+  --color-google-button-blue-hover: #5195ee; /* Google button blue hover */
+  --color-google-button-dark: #202124; /* Google button dark */
+  --color-google-button-dark-hover: #555658; /* Google button dark hover */
+  --color-google-button-border-light: #dadce0; /* Google button border light */
+  --color-google-logo-blue: #4285f4; /* Google logo blue */
+  --color-google-logo-red: #ea4335; /* Google logo red */
+  --color-google-logo-yellow: #fbbc05; /* Google logo yellow */
+  --color-google-logo-green: #34a853; /* Google logo green */
 }
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-white dark:bg-background-dark text-text dark:text-text-dark font-display;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
 }
