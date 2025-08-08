@@ -1,0 +1,24 @@
+import React from 'react'
+import HeroSection from './heroSection'
+import FeatureHighlightSection from './featureHighlightSection'
+import LineCommentingFeature from './lineCommentingFeature'
+import StatsAndGallerySection from './statsAndGallarySection'
+import AppHeader from './appHeader'
+import CallToActionSection from './callToActionSection'
+
+// Main Component: Munitorum Landing Page
+export function MunitorumLandingPage() {
+  return (
+    <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
+      <AppHeader />
+      <main className="flex-1">
+        <HeroSection />
+        <FeatureHighlightSection />
+        <LineCommentingFeature />
+        <StatsAndGallerySection />
+        <CallToActionSection />
+      </main>
+    </div>
+  )
+}
+// 6. Final Call to Action

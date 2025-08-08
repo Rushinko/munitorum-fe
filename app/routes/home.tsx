@@ -1,5 +1,6 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { MunitorumLandingPage } from "../pages/welcome/welcome";
+import { ThemeProvider } from "~/components/theme-provider";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,5 +10,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <Welcome />;
+  return (
+      <MunitorumLandingPage />
+  );
 }
