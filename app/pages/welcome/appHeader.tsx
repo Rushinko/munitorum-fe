@@ -1,9 +1,11 @@
 import React from 'react'
 import { Menu, Shield, ShieldCheck } from "lucide-react"
-import { Button } from "~/components/ui/button"
+import { Button, ButtonLink } from "~/components/ui/button/button"
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList, navigationMenuTriggerStyle } from "~/components/ui/navigation-menu"
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet"
 import { cn } from "~/lib/utils"
+import { Link } from 'react-router'
+import LogoButton from '~/components/ui/button/logoButton'
 
 
 export default function AppHeader() {
@@ -14,22 +16,19 @@ export default function AppHeader() {
     { name: 'About', href: '#' },
   ]
   return (
-    <header className="sticky top-0 z-50 w-full border-accent mask-to-t backdrop-filter backdrop-blur-sm">
+    <header className="sticky top-0 z-50 w-full border-accent mask-to-t backdrop-blur-sm">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-        <a href="#" className="flex items-center gap-2">
-          <ShieldCheck className="h-7 w-7 text-amber-400" />
-          <span className="text-xl font-bold tracking-wider text-gray-50">
-            MUNITORUM
-          </span>
-        </a>
+        <LogoButton />
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden lg:flex">
           <NavigationMenuList>
             {navItems.map((item) => (
               <NavigationMenuItem key={item.name}>
-                <a href={item.href} className={cn(navigationMenuTriggerStyle(), 'bg-transparent text-gray-300 hover:bg-gray-800 hover:text-white')}>
-                  {item.name}
-                </a>
+                <Button asChild variant="ghost" className='hover:bg-accent/50'>
+                  <Link to={item.href}>
+                    {item.name}
+                  </Link>
+                </Button>
               </NavigationMenuItem>
             ))}
           </NavigationMenuList>
@@ -43,30 +42,39 @@ export default function AppHeader() {
                 <span className="sr-only">Toggle Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-xs bg-gray-900 border-l border-gray-800 text-gray-50">
+            <SheetContent side="right" className="w-full max-w-xs bg-accent border-l border-accent text-foreground">
               <div className="flex flex-col p-6 space-y-4">
-                 <a href="#" className="flex items-center gap-2 mb-4">
-                  <ShieldCheck className="h-7 w-7 text-amber-400" />
+                <a href="#" className="flex items-center gap-2 mb-4">
+                  <ShieldCheck className="h-7 w-7 text-primary" />
                   <span className="text-lg font-bold">MUNITORUM</span>
                 </a>
                 {navItems.map((item) => (
-                   <a key={item.name} href={item.href} className="text-lg font-medium hover:text-amber-400">
-                     {item.name}
-                   </a>
+                  <a key={item.name} href={item.href} className="text-lg font-medium hover:text-primary">
+                    {item.name}
+                  </a>
                 ))}
-                 <div className="border-t border-gray-800 pt-4 space-y-2">
-                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-gray-950">Login</Button>
-                    <Button variant="outline" className="w-full border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-gray-950">Sign Up</Button>
+                <div className="border-t border-accent pt-4 space-y-2">
+                  <Button className="w-full bg-primary hover:bg-primary text-primary-foreground">Login</Button>
+                  <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground">Sign Up</Button>
                 </div>
               </div>
             </SheetContent>
           </Sheet>
         </div>
         <div className="hidden lg:flex items-center gap-2">
-          <Button variant="ghost" className="text-gray-300 hover:bg-gray-800 hover:text-white">Login</Button>
-          <Button className="bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold">Sign Up</Button>
+          <Button asChild variant="ghost">
+            <Link to="/login">
+              Login
+            </Link>
+          </Button>
+          <Button asChild variant="default">
+            <Link to="/signup">
+              Sign Up
+            </Link>
+          </Button>
         </div>
       </div>
+
     </header>
   )
 }

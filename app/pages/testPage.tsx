@@ -1,5 +1,5 @@
 
-import { Button } from "~/components/ui/button";
+import { Button } from "~/components/ui/button/button";
 import { Slider } from "~/components/ui/slider";
 
 export function TestPage() {

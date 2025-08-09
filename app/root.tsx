@@ -34,7 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <ThemeProvider defaultTheme="dark" storageKey="munitorum-theme">
+        <ThemeProvider defaultTheme="system" storageKey="munitorum-theme">
           {children}
         </ThemeProvider>
         <ScrollRestoration />
