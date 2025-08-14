@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Route } from "./+types/login";
-import LoginPage from '~/pages/login/loginPage';
+import { LoginForm } from '~/pages/auth/login/loginForm';
 
 
 export function meta({}: Route.MetaArgs) {
@@ -12,6 +12,6 @@ export function meta({}: Route.MetaArgs) {
 
 export default function login() {
   return (
-    <LoginPage />
+    <LoginForm />
   )
 }

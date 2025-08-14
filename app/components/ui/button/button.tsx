@@ -11,13 +11,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary/85 active:bg-primary/80 dark:active:bg-primary/70",
+          "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active active:ring-1 active:ring-ring focus-visible:ring-ring",
         destructive:
           "bg-destructive text-foreground hover:bg-destructive/70 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 dark:hover:bg-destructive/70 active:bg-destructive/60 dark:active:bg-destructive/90",
         outline:
-          "border bg-background hover:bg-accent/90 hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/40 active:bg-accent dark:active:bg-input/60",
+          "border bg-background hover:bg-accent/90 hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/40 active:bg-accent dark:active:bg-input/60 active:ring-1 active:ring-ring focus-visible:ring-ring",
         secondary:
-          "bg-secondary text-secondary-foreground  hover:bg-secondary/85 active:bg-secondary/70",
+          "bg-secondary text-secondary-foreground  hover:bg-secondary/85 active:bg-secondary/70 active:ring-1 active:ring-ring focus-visible:ring-ring",
         ghost:
           "bg-transparent hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/70 dark:active:bg-accent/60",
         link: "text-primary underline-offset-4 hover:underline active:brightness-140",
@@ -25,7 +25,9 @@ const buttonVariants = cva(
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        lg: "h-10 rounded-md px-6 has-[>svg]:px-4 text-lg",
+        xl: "h-11 rounded-md px-8 has-[>svg]:px-6 text-xl",
+        "2xl": "h-12 rounded-md px-10 has-[>svg]:px-8 text-2xl",
         icon: "size-9",
       },
     },
@@ -51,7 +53,7 @@ function Button({
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={`${cn(buttonVariants({ variant, size, className }))} hover:cursor-pointer`}
       {...props}
     />
   )
@@ -61,25 +63,26 @@ function ButtonLink({
   className,
   variant,
   size,
-  asChild = false,
   to,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean,
     to: string
   }) {
 
   return (
-    <Link to={to}>
-      <Button
-        className={className}
-        variant={variant}
-        size={size}
-        asChild={asChild}
-        {...props}
-      />
-    </Link>
+    <Button
+      className={className}
+      variant={variant}
+      size={size}
+      asChild
+      {...props}
+    >
+      <Link to={to}>
+      {children}
+      </Link>
+    </Button>
   )
 }
 

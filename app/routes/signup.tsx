@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Route } from "./+types/signup";
-import SignupPage from '~/pages/signup/signupPage';
+import { SignupForm } from '~/pages/auth/signup/signupForm';
 
 
 export function meta({}: Route.MetaArgs) {
@@ -10,8 +10,12 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+export async function clientLoader({ params }: Route.ClientLoaderArgs) {
+  return "This is the client loader for the signup route.";
+};
+
 export default function signup() {
   return (
-    <SignupPage />
+    <SignupForm />
   )
 }

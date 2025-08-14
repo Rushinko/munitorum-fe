@@ -1,5 +1,3 @@
-"use client"
-
 import { createContext, use, useContext, useEffect, useLayoutEffect, useState } from "react"
 import { UNSAFE_DataRouterStateContext } from "react-router"
 

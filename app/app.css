@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+@import "tailwindcss-animated";
+
 
 @utility mask-to-t {
   mask: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.7) 20%, rgba(0, 0, 0, 1) 30%);
@@ -20,6 +21,8 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -57,7 +60,9 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(50.471% 0.09182 156.054);
+  --primary: #409866;
+  --primary-hover: #39865a;
+  --primary-active: #31754e;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -76,6 +81,7 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --success: oklch(67.802% 0.15218 153.682);
   --error: oklch(63.7% 0.237 25.331);
+  --error-foreground: oklch(0.985 0 0);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -84,7 +90,7 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --before-background: oklch(0.145 0 0);
+  --hover-background: oklch(0.205 0 0);
   --image-gradient-start: rgba(225, 225, 225, 0.65);
   --image-gradient-middle: rgba(235, 235, 235, 0.8);
   --image-gradient-end: rgba(255, 255, 255, 1);
@@ -98,7 +104,9 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(50.471% 0.09182 156.054);
+  --primary: #409866;
+  --primary-hover: #39865a;
+  --primary-active: #31754e;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -126,6 +134,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --hover-background: oklch(1 0 0);
   --highlight-background: oklch(52.987% 0.26271 272.89);
   --image-gradient-start: rgba(38, 38, 38, 0.8);
   --image-gradient-middle: rgba(20, 20, 20, 0.9);

@@ -1,4 +1,12 @@
+import * as z from "zod";
+
+export const SignupFormSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters long").max(20, "Username must be at most 20 characters long").regex(/^[a-zA-Z0-9]+$/, "Username can only contain alphanumeric characters"),
+  email: z.string().email("Please enter a valid email address"),
+})
+
 export const validateEmail = (email: string): boolean => {
+  console.log("Validating email:", email);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
@@ -22,7 +30,7 @@ export const validateConfirmPassword = (password: string, confirmPassword: strin
 export enum ErrorMessage {
   invalidEmail = "Please enter a valid email address.",
   weakPassword = "Password must be at least 8 characters long and contain at least one number and one special character.",
-  invalidUsername = "Username must be alphanumeric and between 3 to 20 characters.",
+  invalidUsername = "Username must be alphanumeric and between 4 to 20 characters.",
   passwordsDoNotMatch = "Passwords do not match.",
   unexpectedError = "An unexpected error occurred. Please try again later.",
   unauthorized = "You are not authorized to perform this action.",

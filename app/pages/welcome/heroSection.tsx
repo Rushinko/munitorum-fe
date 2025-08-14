@@ -1,6 +1,7 @@
 import React from "react";
 import { ChevronRight, Swords } from "lucide-react";
 import { Button } from "~/components/ui/button/button";
+import { Link } from "react-router";
 
 // 2. Hero Section
 function HeroSection() {
@@ -11,12 +12,14 @@ function HeroSection() {
           Forge Your Legend. Share Your Lists.
         </h1>
         <p className="mx-auto mt-6 max-w-3xl text-lg text-accent-foreground md:text-xl">
-          Munitorum is the ultimate arsenal for Warhammer 40,000 players. Craft, share, and refine your army lists with tactical feedback from the entire community.
+          Munitorum is the ultimate arsenal for any Warhammer player. Craft, share, and refine your army lists with tactical feedback from the entire community.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Button size="lg" className="font-bold text-lg px-8 py-6 shadow-sm">
-            <Swords className="mr-2 h-5 w-5" />
-            Share Your First List
+          <Button asChild size="lg" className="font-bold text-lg px-8 py-6 shadow-sm">
+            <Link to="/signup">
+              <Swords className="mr-2 h-5 w-5" />
+              Share Your First List
+            </Link>
           </Button>
           <Button size="lg" variant="outline" className=" font-bold text-lg px-8 py-6 shadow-sm">
             Browse Public Lists

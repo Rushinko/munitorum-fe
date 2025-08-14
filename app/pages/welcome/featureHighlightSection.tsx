@@ -5,8 +5,8 @@ function FeatureHighlightSection() {
   const features = [
     {
       icon: ShieldCheck,
-      title: 'Craft & Share Lists',
-      description: 'Build your army lists with a clean, intuitive interface. Share them with a unique link or make them public for everyone to see.',
+      title: 'Import & Share Lists',
+      description: 'Upload your lists from any source for any game system. Share your ideas with friends or the entire community for feedback and improvement.',
     },
     {
       icon: BarChart3,
@@ -29,7 +29,7 @@ function FeatureHighlightSection() {
         </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
-            <Card key={feature.title} className="hover:border-primary transition-colors">
+            <Card key={feature.title}>
               <CardHeader className="flex flex-row items-center gap-4">
                 <div className="bg-background p-3 rounded-full">
                   <feature.icon className="h-6 w-6 text-primary" />
