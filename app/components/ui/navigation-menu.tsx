@@ -4,6 +4,7 @@ import { cva } from "class-variance-authority"
 import { ChevronDownIcon } from "lucide-react"
 
 import { cn } from "~/lib/utils"
+import { Link } from "react-router"
 
 function NavigationMenu({
   className,
@@ -70,7 +71,7 @@ function NavigationMenuTrigger({
   return (
     <NavigationMenuPrimitive.Trigger
       data-slot="navigation-menu-trigger"
-      className={cn(navigationMenuTriggerStyle(), "group", className)}
+      className={cn(className, navigationMenuTriggerStyle(), "group")}
       {...props}
     >
       {children}{" "}
@@ -155,10 +156,31 @@ function NavigationMenuIndicator({
   )
 }
 
+function ListItem({
+  title,
+  children,
+  href,
+  ...props
+}: React.ComponentPropsWithoutRef<"li"> & { href: string }) {
+  return (
+    <li {...props}>
+      <NavigationMenuLink asChild>
+        <Link to={href}>
+          <div className="text-sm leading-none font-medium">{title}</div>
+          <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
+            {children}
+          </p>
+        </Link>
+      </NavigationMenuLink>
+    </li>
+  )
+}
+
 export {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
+  ListItem,
   NavigationMenuContent,
   NavigationMenuTrigger,
   NavigationMenuLink,

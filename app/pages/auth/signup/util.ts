@@ -6,7 +6,6 @@ export const SignupFormSchema = z.object({
 })
 
 export const validateEmail = (email: string): boolean => {
-  console.log("Validating email:", email);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
@@ -29,7 +28,7 @@ export const validateConfirmPassword = (password: string, confirmPassword: strin
 
 export enum ErrorMessage {
   invalidEmail = "Please enter a valid email address.",
-  weakPassword = "Password must be at least 8 characters long and contain at least one number and one special character.",
+  weakPassword = "Password must be at least 8 characters, contain one upper case letter, one lower case letter, one number and one special character.",
   invalidUsername = "Username must be alphanumeric and between 4 to 20 characters.",
   passwordsDoNotMatch = "Passwords do not match.",
   unexpectedError = "An unexpected error occurred. Please try again later.",

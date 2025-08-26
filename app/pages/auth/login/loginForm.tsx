@@ -1,7 +1,7 @@
 import { cn } from "~/lib/utils"
 import { Button } from "~/components/ui/button/button"
 import { Input } from "~/components/ui/input"
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import * as z from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -20,6 +20,8 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"form">) {
 
+  const navigate = useNavigate();
+
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
@@ -31,11 +33,10 @@ export function LoginForm({
   });
 
   const onSubmit = async (data: z.infer<typeof loginFormSchema>) => {
-    console.log("Form submitted with data:", data);
     try {
       const response = await postLogin(data.email, data.password);
-      console.log("Login successful:", response.data);
       handleLoginResponse(response.data);
+      navigate("/app");
       // Handle successful login, e.g., store tokens, redirect, etc.
     } catch (error: any | AxiosError<AuthError>) {
       console.error("Login failed:", error);

@@ -1,5 +1,7 @@
 import axios, { type AxiosResponse } from "axios";
-import apiClient from "~/lib/service";
+import { useNavigate } from "react-router";
+import apiClient, { authClient } from "~/lib/service";
+import tokenService from "~/lib/token";
 
 export type LoginResponse = {
   accessToken: string;
@@ -8,14 +10,12 @@ export type LoginResponse = {
 }
 
 export const postLogin = async (email: string, password: string): Promise<AxiosResponse<LoginResponse>> => {
-  return apiClient.post(`/auth/login`, {
+  return authClient.post(`/auth/login`, {
     email,
     password,
   })
 }
 
 export const handleLoginResponse = (response: LoginResponse) => {
-  console.log("Login successful:", response);
-  
-  // Handle successful login, e.g., store tokens, redirect, etc.
+  tokenService.setTokens(response.accessToken, response.refreshToken);
 }

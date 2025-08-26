@@ -3,7 +3,7 @@ import HeroSection from './heroSection'
 import FeatureHighlightSection from './featureHighlightSection'
 import LineCommentingFeature from './lineCommentingFeature'
 import StatsAndGallerySection from './statsAndGallarySection'
-import AppHeader from './appHeader'
+import AppHeader from '../../components/ui/appHeader'
 import CallToActionSection from './callToActionSection'
 
 // Main Component: Munitorum Landing Page

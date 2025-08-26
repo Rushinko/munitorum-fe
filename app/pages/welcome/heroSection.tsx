@@ -1,12 +1,13 @@
 import React from "react";
-import { ChevronRight, Swords } from "lucide-react";
+import { ChevronRight, ShieldCheck, Swords } from "lucide-react";
 import { Button } from "~/components/ui/button/button";
 import { Link } from "react-router";
+import Logo from "~/components/ui/logo";
 
 // 2. Hero Section
 function HeroSection() {
   return (
-    <section className="relative py-20 md:py-32 bg-cover bg-bottom" style={{ backgroundImage: 'linear-gradient(var(--image-gradient-start) 0, var(--image-gradient-middle) 50%, var(--image-gradient-end) 100%), url(https://taleofpainters.com/wp-content/uploads/2018/07/ultramarines_stahly_armyshot.jpg.webp)' }}>
+    <section className="relative py-20 md:py-16 flex items-center justify-center h-screen bg-cover bg-no-repeat bg-top" style={{ backgroundImage: 'linear-gradient(to bottom, var(--image-gradient-start) 0%, var(--image-gradient-middle) 60%, var(--image-gradient-end) 100%), url(https://taleofpainters.com/wp-content/uploads/2018/07/ultramarines_stahly_armyshot.jpg.webp)' }}>
       <div className="container mx-auto max-w-7xl px-4 md:px-6 text-center">
         <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-foreground">
           Forge Your Legend. Share Your Lists.

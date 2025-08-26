@@ -30,6 +30,8 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(
     () => defaultTheme
   )
+
+
   const value = {
     theme,
     setTheme
@@ -77,10 +79,19 @@ export function ThemeProvider({
 }
 
 export const useTheme = () => {
-  const context = useContext(ThemeProviderContext)
+  const [context, setContext] = useState<React.Context<ThemeProviderState>>(ThemeProviderContext);
 
-  if (context === undefined)
-    throw new Error("useTheme must be used within a ThemeProvider")
+  useLayoutEffect(() => {
+    setContext(ThemeProviderContext);
+  }, []);
+
+  useEffect(() => {
+    if (context === undefined) {
+      setContext(ThemeProviderContext);
+    }
+  }, [ThemeProviderContext]);
+
+  throw new Error("useTheme must be used within a ThemeProvider")
 
   return context
 }

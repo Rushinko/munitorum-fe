@@ -14,8 +14,7 @@ import {
   FormMessage,
 } from "~/components/ui/form"
 import { Input } from "~/components/ui/input"
-import { ErrorMessage, validateEmail, validateUsername } from "./util";
-import ErrorCard from "~/components/ui/card/errorCard";
+import { ErrorMessage } from "./util";
 import { postSignup } from "./services";
 import type { AxiosError } from "axios";
 import { setFormErrors, type AuthError } from "../util";
@@ -26,7 +25,7 @@ export const signupFormSchema = z.object({
   }),
   email: z.email({ error: "Please enter a valid email address" }),
   password: z.string().min(8, { error: "Password must be at least 8 characters" })
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$/, { error: "Password must contain at least one uppercase letter, one lowercase letter, and one number" }),
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$/, { error: ErrorMessage.weakPassword }),
   confirmPassword: z.string().min(8, { error: "Confirm Password must be at least 8 characters" }),
 }).refine((data) => data.password === data.confirmPassword, {
   error: "Passwords do not match",
@@ -57,7 +56,6 @@ export function SignupForm({
 
   const onSubmit = async (data: z.infer<typeof signupFormSchema>) => {
     setSignupError('');
-    console.log("Form submitted with data:", data);
     // Handle form submission logic here
 
     try {
@@ -84,11 +82,11 @@ export function SignupForm({
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-2xl font-bold">Create a new account</h1>
         </div>
-        {signupError && (
+        {/* {signupError && (
           <ErrorCard className="mb-4">
             {signupError || ErrorMessage.unexpectedError}
           </ErrorCard>
-        )}
+        )} */}
         <div className="grid gap-6">
           <FormField
             name="username"
