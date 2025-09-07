@@ -6,3 +6,5 @@ export type User = {
   picture: string;
   birthday: string;
 };
+
+

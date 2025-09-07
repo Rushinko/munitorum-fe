@@ -1,9 +1,8 @@
-import DashboardPage from "~/pages/dashboard";
 import type { Route } from "./+types/calculator";
-import { getBattleReports, getLists } from "~/components/armyList/service";
-import useAppStore from "~/lib/store";
-import { Outlet } from "react-router";
-import { Card, CardDescription, CardHeader, CardTitle } from "~/components/ui/card/card";
+import { Button } from "~/components/ui/button/button";
+import useToolsStore from "./store";
+import { PlusIcon } from "lucide-react";
+import DatasheetCard from "~/components/datasheets/customDatasheet";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -16,16 +15,47 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 }
 
 export default function Calculator(props: Route.ComponentProps) {
+  const datasheets = useToolsStore(state => state.datasheets);
+  const attackerIds = useToolsStore(state => state.attackersIds);
+  const defenderIds = useToolsStore(state => state.defendersIds);
+  const datasheetActions = useToolsStore(state => state.datasheetActions);
+  const addDatasheet = useToolsStore(state => state.addDatasheet);
+  const addAttacker = useToolsStore(state => state.addAttacker);
+  const addDefender = useToolsStore(state => state.addDefender);
+
+  const handleAddDatasheet = (isAttacker: boolean) => {
+    const newId = addDatasheet();
+    if (isAttacker) {
+      addAttacker(newId);
+    } else {
+      addDefender(newId);
+    }
+  };
+
   return (
-    <div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Calculator</CardTitle>
-        </CardHeader>
-        <CardDescription>
-          <p>Calculate damage, charge odds, and more!</p>
-        </CardDescription>
-      </Card>
+    <div className="w-full flex flex-col p-4 gap-4">
+      <h1 className="text-2xl mb-4">Calculator</h1>
+      <div className="flex"><Button variant="default">Calculate</Button></div>
+      <div className="grid xl:grid-cols-2 lg:grid-cols-1 gap-8">
+        <div className="flex flex-col gap-4 max-w-322">
+          <h2 className="text-xl font-bold mx-2">Attackers
+            <Button className="ml-2" variant="secondary" onClick={() => handleAddDatasheet(true)}><PlusIcon /></Button>
+          </h2>
+          {datasheets.filter(ds => attackerIds.includes(ds.id)).map(ds => (
+            <DatasheetCard datasheet={ds} actions={datasheetActions} />
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-4">
+
+          <h2 className="text-xl font-bold ml-2">Defenders
+            <Button className="ml-2" variant="secondary" onClick={() => handleAddDatasheet(false)}><PlusIcon /></Button>
+          </h2>
+          {datasheets.filter(ds => defenderIds.includes(ds.id)).map(ds => (
+            <DatasheetCard datasheet={ds} actions={datasheetActions} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
