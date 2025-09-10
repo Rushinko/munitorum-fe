@@ -47,7 +47,7 @@ export default function WeaponProfilesTable({ profiles, onProfileChange, onProfi
               />
             </TableCell>
             {/* The key for the mapped input is now the stat name */}
-            {['attacks', 'ws', 'strength', 'ap', 'damage'].map(stat => (
+            {Object.keys(profile).filter(key => key !== 'id' && key !== 'name').map(stat => (
               <TableCell key={stat} className=''>
                 <Input
                   type="text"

@@ -60,7 +60,7 @@ const useToolsStore = create<ToolsStore>()(immer((set) => ({
     addWeaponProfile: (datasheetId) => set(state => ({
       datasheets: state.datasheets.map(ds =>
         ds.id === datasheetId
-          ? { ...ds, profiles: [...ds.weaponProfiles, { id: uuidv4(), name: '', attacks: 0, weaponSkill: 0, strength: 0, armorPenetration: 0, damage: 0 }] }
+          ? { ...ds, weaponProfiles: [...ds.weaponProfiles, { id: uuidv4(), name: '', attacks: 0, weaponSkill: 0, strength: 0, armorPenetration: 0, damage: 0 }] }
           : ds
       )
     })),
@@ -71,22 +71,13 @@ const useToolsStore = create<ToolsStore>()(immer((set) => ({
           : ds
       )
     })),
-    updateWeaponProfile: (datasheetId, profileId, field, value) => set(state => ({
-      datasheets: state.datasheets.map(ds => {
-        if (ds.id === datasheetId) {
-          return {
-            ...ds,
-            weaponProfiles: ds.weaponProfiles.map(p => {
-              if (p.id === profileId) {
-                return { ...p, [field]: value };
-              }
-              return p;
-            })
-          };
-        }
-        return ds;
-      })
-    })),
+    updateWeaponProfile: (datasheetId, profileId, field, value) => set(state => {
+      const datasheet = state.datasheets.find(ds => ds.id === datasheetId);
+      if (!datasheet) return;
+      const profile = datasheet.weaponProfiles.find(p => p.id === profileId);
+      if (!profile) return;
+      (profile[field] as typeof value) = value;
+    })
   },
   addAttacker: (datasheetId) => set(state => ({
     attackersIds: [...state.attackersIds, datasheetId]

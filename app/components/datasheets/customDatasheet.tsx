@@ -26,7 +26,7 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions }: Dat
    * Handles changes to datasheet input fields on the datasheet
    * Parameters are now typed for better code safety and autocompletion.
    * @param {keyof Omit<Datasheet, 'id' | 'name' | 'profiles'>} field - The field being updated.
-   * @param {React.ChangeEvent<HTMLInputElement>} event - The input change event.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
    */
   const handleDatasheetStatChange = (field: keyof DatasheetStats, e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -44,8 +44,8 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions }: Dat
    * @param {number} id - The unique ID of the profile being edited.
    * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
    */
-  const handleWeaponProfileUpdate = (id: string, name: keyof Omit<WeaponProfile, 'id'>, value: string | number) => {
-    updateWeaponProfile(datasheet.id, id, name, value);
+  const handleWeaponProfileUpdate = (id: string, field: keyof Omit<WeaponProfile, 'id'>, value: string | number) => {
+    updateWeaponProfile(datasheet.id, id, field, value);
   };
 
   /**
@@ -53,6 +53,7 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions }: Dat
    * The newProfile object must conform to the WeaponProfile interface.
    */
   const addProfile = () => {
+    console.log("Adding new weapon profile...");
     addWeaponProfile(datasheet.id);
   };
 

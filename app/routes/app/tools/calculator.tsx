@@ -3,6 +3,7 @@ import { Button } from "~/components/ui/button/button";
 import useToolsStore from "./store";
 import { PlusIcon } from "lucide-react";
 import DatasheetCard from "~/components/datasheets/customDatasheet";
+import { calculateWeapon } from "./lib";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -32,10 +33,22 @@ export default function Calculator(props: Route.ComponentProps) {
     }
   };
 
+  const handleCalcTest = () => {
+    console.log("Running calculation test...");
+    const attacker = datasheets.find(ds => attackerIds.includes(ds.id));
+    const defender = datasheets.find(ds => defenderIds.includes(ds.id));
+    if (attacker && defender) {
+      console.log("Attacker:", attacker);
+      console.log("Defender:", defender);
+      const result = calculateWeapon(attacker.weaponProfiles[0], defender);
+      console.log("Calculation result:", result);
+    }
+  }
+
   return (
     <div className="w-full flex flex-col p-4 gap-4">
       <h1 className="text-2xl mb-4">Calculator</h1>
-      <div className="flex"><Button variant="default">Calculate</Button></div>
+      <div className="flex"><Button variant="default" onClick={handleCalcTest}>Calculate</Button></div>
       <div className="grid xl:grid-cols-2 lg:grid-cols-1 gap-8">
         <div className="flex flex-col gap-4 max-w-322">
           <h2 className="text-xl font-bold mx-2">Attackers
