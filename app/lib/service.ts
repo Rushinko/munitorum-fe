@@ -1,9 +1,5 @@
 import axios, { type AxiosRequestConfig } from 'axios';
-import type { useForm, UseFormReturn } from 'react-hook-form';
-import { redirect, useNavigate } from 'react-router';
-import * as z from 'zod';
-import type { loginFormSchema } from '~/routes/app/auth/login/loginForm';
-import type { signupFormSchema } from '~/routes/app/auth/signup/signupForm';
+import { useNavigate } from 'react-router';
 import tokenService from './token';
 import { postLogout } from '~/routes/app/auth/signup/services';
 

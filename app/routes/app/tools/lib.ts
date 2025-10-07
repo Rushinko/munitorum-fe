@@ -30,7 +30,7 @@ export const runCalculation = (attackers: Datasheet[], defenders: Datasheet[], m
       attacker.weaponProfiles.forEach(weapon => {
         const attacks = parseDice(weapon.attacks.toString());
         const isVariableAttacks = (!(attacks?.count === 0 || attacks === null || attacks.count === undefined) && attacks?.count > 0);
-        const effectiveSave = Math.min(defender.stats.save + Math.abs(weapon.armorPenetration), defender.stats.invulnerableSave);
+        const effectiveSave = Math.min(defender.stats.save + Math.abs(weapon.armorPenetration), defender.stats.invulnerableSave === 0 ? 7 : defender.stats.invulnerableSave);
         const woundTarget = getWoundTarget(weapon.strength, defender.stats.toughness, modifiers);
         let result: CalculationResult = { hits: [], wounds: [], saves: [] };
         if (isVariableAttacks) {
