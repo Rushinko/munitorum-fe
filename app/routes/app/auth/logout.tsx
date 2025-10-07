@@ -1,6 +1,6 @@
 import React from 'react'
-import type { Route } from "./+types/logout";
-import { postLogout } from '~/pages/auth/signup/services';
+import type { Route } from "../../+types/logout";
+import { postLogout } from '~/routes/app/auth/signup/services';
 import { handleLogout } from '~/lib/service';
 import { redirect } from 'react-router';
 import useAppStore from '~/lib/store';

@@ -1,3 +1,4 @@
+import type { Route } from "../../../+types/login";
 import { cn } from "~/lib/utils"
 import { Button } from "~/components/ui/button/button"
 import { Input } from "~/components/ui/input"
@@ -15,7 +16,14 @@ export const loginFormSchema = z.object({
   password: z.string().min(8, { error: "Password must be at least 8 characters" })
 });
 
-export function LoginForm({
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Munitorum" },
+    { name: "description", content: "Login to Munitorum" },
+  ];
+}
+
+export default function Login({
   className,
   ...props
 }: React.ComponentProps<"form">) {

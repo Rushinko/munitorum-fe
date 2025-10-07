@@ -1,8 +1,7 @@
 import type { Route } from "./+types/home";
-import { MunitorumLandingPage } from "../pages/welcome/welcome";
-import { ThemeProvider } from "~/components/theme-provider";
 import { handleLoggedInCheck } from "~/lib/service";
 import { redirect } from "react-router";
+import { MunitorumLandingPage } from "~/components/welcome/welcome";
 
 export function meta({}: Route.MetaArgs) {
   return [

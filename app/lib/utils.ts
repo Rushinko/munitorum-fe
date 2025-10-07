@@ -40,3 +40,30 @@ function isTokenValid(token: string): boolean {
     return false; // Token is invalid
   }
 }
+
+export function camelCaseToString(text: string): string {
+  return text
+    // Insert a space before all caps
+    .replace(/([A-Z])/g, ' $1')
+    // Uppercase the first character
+    .replace(/^./, function(str){ return str.toUpperCase(); })
+    .trim(); 
+}
+
+export function formatNumber(num: number, decimals?: number, formatString?: string): string | number{
+  if (decimals !== undefined) {
+    return num.toFixed(decimals);
+  }
+  if (!formatString) {
+    formatString = 'decimal';
+  }
+  if (formatString === 'percent') {
+    return num = (num * 100).toFixed(2) as unknown as number;
+  }
+  // Use Intl.NumberFormat to format the number according to the specified style
+  return new Intl.NumberFormat('en-CA', {
+    style: formatString as Intl.NumberFormatOptions['style'],
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(num);
+}

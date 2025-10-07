@@ -2,10 +2,10 @@ import axios, { type AxiosRequestConfig } from 'axios';
 import type { useForm, UseFormReturn } from 'react-hook-form';
 import { redirect, useNavigate } from 'react-router';
 import * as z from 'zod';
-import type { loginFormSchema } from '~/pages/auth/login/loginForm';
-import type { signupFormSchema } from '~/pages/auth/signup/signupForm';
+import type { loginFormSchema } from '~/routes/app/auth/login/loginForm';
+import type { signupFormSchema } from '~/routes/app/auth/signup/signupForm';
 import tokenService from './token';
-import { postLogout } from '~/pages/auth/signup/services';
+import { postLogout } from '~/routes/app/auth/signup/services';
 
 interface RetryableAxiosRequestConfig extends AxiosRequestConfig {
   _retry?: boolean;

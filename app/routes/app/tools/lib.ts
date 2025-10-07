@@ -1,52 +1,17 @@
-import { number } from "zod";
-import { da } from "zod/v4/locales";
-import type { Datasheet, WeaponProfile } from "~/components/datasheets/types";
+import type { CalculationResult } from "~/components/calculator/types";
+import type { Datasheet, DatasheetModifiers, WeaponProfile } from "~/components/datasheets/types";
+import { getCumulativeProbabilities, getDiceProbabilities, getDiceSumDistribution, valueToTarget, type DiceProbability } from "~/lib/probability";
 
 const SIDES = 6;
 
-export const runCalculation = (attackers: Datasheet[], defenders: Datasheet[]) => {
-  attackers.forEach(attacker => {
-    defenders.forEach(defender => {
-      console.log(`Calculating combat between attacker ${attacker.name} and defender ${defender.name}`);
-      // Placeholder for actual combat calculation logic
-      attacker.weaponProfiles.forEach(weapon => {
-        console.log(` - Attacker weapon: ${weapon.name}`);
-        const avgDamage = averageDamage(weapon.damage);
-        const hits = calculateHits(weapon.weaponSkill, weapon.attacks * attacker.models);
-      });
-    });
-  });
-};
-
-export const calculateWeapon = (weapon: WeaponProfile, defender: Datasheet, cover: boolean = false) => {
-  const avgDamage = averageDamage(weapon.damage);
-  const hits = calculateHits(weapon.weaponSkill, weapon.attacks);
-  const wounds = hits * calculateWoundChance(weapon.strength, defender.stats.toughness);
-  const saves = wounds * calculateSaveChance(defender.stats.save, weapon.armorPenetration, cover, defender.stats.invulnerableSave);
-  let modelsKilled = 0;
-  if (defender.stats.feelNoPain <= 0) {
-    modelsKilled = saves * avgDamage / defender.stats.wounds;
-  }
-  else {
-    modelsKilled = calculateAverageKillsFocused(
-      defender.models,
-      defender.stats.wounds,
-      saves,
-      avgDamage,
-      defender.stats.feelNoPain,
-    );
-  }
-  return { hits, wounds, saves, modelsKilled };
-};
-
-export const parseDamageDice = (damage: string) => {
+const parseDice = (damage: string) => {
   const cleanString = damage.trim().toUpperCase();
   const diceRegex = /^(\d*)D(\d+)(?:\+(\d+))?$/;
   const match = cleanString.match(diceRegex);
   if (match) {
-    const count = parseInt(match[1], 10);
-    const sides = parseInt(match[2], 10);
-    const additional = parseInt(match[3], 10);
+    const count = match[1] === '' ? 1 : parseInt(match[1], 10);
+    const sides = match[2] === '' ? 0 : parseInt(match[2], 10);
+    const additional = match[3] === '' || match[3] === undefined ? 0 : parseInt(match[3], 10);
     return { count, sides, additional };
   }
   const flatRegex = /^\d+$/;
@@ -56,8 +21,57 @@ export const parseDamageDice = (damage: string) => {
   return null;
 };
 
+
+
+export const runCalculation = (attackers: Datasheet[], defenders: Datasheet[], modifiers: DatasheetModifiers): CalculationResult[] | null => {
+  const results: CalculationResult[] = [];
+  attackers.forEach(attacker => {
+    defenders.forEach(defender => {
+      attacker.weaponProfiles.forEach(weapon => {
+        const attacks = parseDice(weapon.attacks.toString());
+        const isVariableAttacks = (!(attacks?.count === 0 || attacks === null || attacks.count === undefined) && attacks?.count > 0);
+        const effectiveSave = Math.min(defender.stats.save + Math.abs(weapon.armorPenetration), defender.stats.invulnerableSave);
+        const woundTarget = getWoundTarget(weapon.strength, defender.stats.toughness, modifiers);
+        let result: CalculationResult = { hits: [], wounds: [], saves: [] };
+        if (isVariableAttacks) {
+          result = calculateVariableAttackSequence(
+            attacks.count * attacker.models,
+            attacks.sides,
+            attacks.additional * attacker.models,
+            SIDES,
+            weapon.weaponSkill,
+            woundTarget,
+            effectiveSave,
+            modifiers
+          );
+        }
+        else {
+          result = calculateAttackSequence(
+            attacker.models * parseInt(weapon.attacks, 10),
+            SIDES,
+            weapon.weaponSkill,
+            woundTarget,
+            effectiveSave,
+            modifiers
+          );
+        }
+        const avgDamage = averageDamage(weapon.damage);
+        const avgTotalDamage = result.saves.reduce((sum, dp) => sum + dp.exact * dp.orHigher, 0) * avgDamage;
+        const avgDamagePerModel = avgTotalDamage / attacker.models;
+        result.attacker = attacker.name;
+        result.damagePerModel = avgDamagePerModel;
+        result.defender = defender.name;
+        result.weapon = weapon.name;
+        results.push(result);
+      });
+    });
+  });
+  console.log("Full calculation results:", results);
+  return results.length > 0 ? results : null;
+};
+
 const averageDamage = (damage: string): number => {
-  const parsed = parseDamageDice(damage);
+  const parsed = parseDice(damage);
   if (parsed) {
     const { count, sides, additional } = parsed;
     if (count === 0) {
@@ -68,155 +82,184 @@ const averageDamage = (damage: string): number => {
   return 0;
 };
 
-const calculateHits = (weaponSkill: number, attacks: number): number => {
 
-  const hitsChance = (SIDES - weaponSkill + 1) / SIDES;
-  console.log(weaponSkill, attacks, hitsChance);
-  return hitsChance * attacks;
+const getWoundTarget = (strength: number, toughness: number, modifiers: DatasheetModifiers): number => {
+  let ret;
+  if (strength >= 2 * toughness) ret = 2;
+  else if (strength > toughness) ret = 3;
+  else if (strength === toughness) ret = 4;
+  else if (strength * 2 <= toughness) ret = 6;
+  else ret = 5;
+  if (modifiers.woundModifier !== 0) {
+    ret -= modifiers.woundModifier;
+    if (ret < 2) ret = 2;
+    if (ret > 6) ret = 6;
+  }
+  return ret;
 };
 
-const calculateWoundChance = (strength: number, toughness: number) => {
-  if (strength * 2 <= toughness) {
-    return 1 / 6;
-  }
-  if (strength < toughness) {
-    return 1 / 3
-  }
-  if (strength === toughness) {
-    return 1 / 2;
-  }
-  if (strength >= toughness * 2) {
-    return 5 / 6;
-  }
-  if (strength > toughness) {
-    return 5 / 6;
-  }
-  return 0;
-};
+const getDamageProbabilities = (weapon: WeaponProfile, unsavedWounds: DiceProbability[], modifiers: DatasheetModifiers): DiceProbability[] => {
+  const damageProbabilities: DiceProbability[] = [];
 
-const calculateSaveChance = (save: number, armorPenetration: number, hasCover: boolean, invulnerableSave?: number) => {
-  let effectiveSave = save + Math.abs(armorPenetration);
-  if (hasCover) {
-    effectiveSave -= 1;
-  }
-  if (invulnerableSave && invulnerableSave > 0 && effectiveSave < invulnerableSave) {
-    effectiveSave = invulnerableSave;
-  }
-  const saveChance = diceOdds(6, effectiveSave);
-  return saveChance;
-};
-
-const calculateFeelNoPain = (numberOfWounds: number, feelNoPainSave: number, damage: number, health: number) => {
-  if (numberOfWounds <= 0 || feelNoPainSave <= 0 || damage <= 0) return numberOfWounds;
-  if (health < damage) {
-    const oddsOfModelNotDying = probabilityOfAtLeast(6, numberOfWounds, (damage - health + 1), feelNoPainSave);
-  }
-  return 0;
-};
-
-const diceOdds = (sides: number, target: number) => {
-  const intTarget = Math.floor(target);
-  const intSides = Math.floor(sides);
-  if (intTarget === 1) {
-    return 1;
-  }
-  if (intTarget > intSides) {
-    return 0;
-  }
-  return (intSides - intTarget + 1) / intSides;
-};
-
-const factorialCache: { [key: number]: number } = {};
-
-const factorial = (n: number): number => {
-  if (n < 0) throw new Error("Negative factorial not defined");
-  if (n === 0) return 1;
-  if (factorialCache[n]) return factorialCache[n];
-  factorialCache[n] = n * factorial(n - 1);
-  return factorialCache[n];
-};
-
-const combinations = (n: number, r: number): number => {
-  if (r < 0 || r > n) return 0;
-  return factorial(n) / (factorial(r) * factorial(n - r));
-};
-
-const probabilityOfExactly = (sides: number, rolls: number, needed: number, target: number): number => {
-  if (sides < 0 || rolls < 0 || needed < 0 || target < 0) return 0;
-
-  const successfulOutcomes = sides - Math.floor(target);
-  if (successfulOutcomes <= 0) return needed === 0 ? 1 : 0; // If success is impossible, prob is 100% only if 0 successes are needed.
-  if (successfulOutcomes >= sides) return needed === rolls ? 1 : 0; // If success is guaranteed, prob is 100% only if all dice are successes.
-  const p = successfulOutcomes / sides;
-
-  // Binomial probability formula
-  const numberOfCombinations = combinations(rolls, needed);
-  const probOfSuccess = Math.pow(p, needed);
-  const probOfFailure = Math.pow(1 - p, rolls - needed);
-  return numberOfCombinations * probOfSuccess * probOfFailure;
-};
-
-const probabilityOfAtLeast = (sides: number, rolls: number, needed: number, target: number): number => {
-  let totalProbability = 0;
-  for (let i = needed; i <= rolls; i++) {
-    totalProbability += probabilityOfExactly(sides, rolls, i, target);
-  }
-  return totalProbability;
-};
-
-const calculateAverageKillsFocused = (models: number, health: number, attacks: number, damage: number, fnp: number): number => {
-  // STEP 1: Pre-calculate the damage probability distribution
-  const pSave = diceOdds(6, fnp);
-  const damageProbDist: number[] = new Array(damage + 1).fill(0);
-  for (let saves = 0; saves <= damage; saves++) {
-    const effDamage = damage - saves;
-    const prob = combinations(damage, saves) * Math.pow(pSave, saves) * Math.pow(1 - pSave, damage - saves);
-    damageProbDist[saves] = prob;
-  }
-
-  // STEP 2: Initialize the state probabilities
-  let stateProbabilities = new Map<string, number>();
-  stateProbabilities.set(`${0},${health}`, 1); // Start with all models at full health
-
-  // STEP 3: Iterate through each attack
-  for (let i = 0; i < attacks; i++) {
-    const newStateProbabilities = new Map<string, number>();
-
-    stateProbabilities.forEach((stateProb, stateKey) => {
-      const [killed, currentHealth] = stateKey.split(',').map(Number);
-      if (killed >= models) {
-        // All models are already killed
-        newStateProbabilities.set(stateKey, (newStateProbabilities.get(stateKey) || 0) + stateProb);
-        return;
-      }
-
-      // Apply each possible damage outcome
-      damageProbDist.forEach((pDamage, saves) => {
-        const effDamage = damage - saves;
-        let newHealth = currentHealth - effDamage;
-        let newKilled = killed;
-        const probOfOutcome = stateProb * pDamage
-
-        if (newHealth <= 0) {
-          newKilled += 1;
-          newHealth = health; // Reset health for the next model
-        }
-
-        const newStateKey = `${newKilled},${newHealth}`;
-        newStateProbabilities.set(newStateKey, (newStateProbabilities.get(newStateKey) || 0) + probOfOutcome);
-      });
-    });
-
-    stateProbabilities = newStateProbabilities;
-  }
-
-  // STEP 4: Calculate the final expected value
-  let averageKills = 0;
-
-  stateProbabilities.forEach((stateProb, stateKey) => {
-    const [killed, currentHealth] = stateKey.split(',').map(Number);
-    averageKills += killed * stateProb;
-  });
-
-  return averageKills;
 }
+
+export function calculateAttackSequence(
+  attacks: number,
+  sides: number,
+  hitValue: number,
+  woundValue: number,
+  saveValue: number,
+  modifiers: DatasheetModifiers,
+): CalculationResult {
+
+  // --- Stage 1: Calculate Hit Probabilities ---
+
+  let hitProbabilities: DiceProbability[];
+
+  // --- MODIFICATION START ---
+  // Check for auto-hitting attacks.
+  const pCritHit = (sides - modifiers.criticalHits + 1) / sides;
+  const pSuccessHit = (sides - hitValue + 1) / sides;
+  const pNormalHit = pSuccessHit - pCritHit;
+
+  let effectivePHit = pSuccessHit;
+  if (hitValue === 0) {
+    // Manually construct the hit probabilities array.
+    // The probability of getting exactly 'attacks' number of hits is 1.0.
+    // The probability of getting any other number of hits is 0.
+    hitProbabilities = new Array(attacks + 1);
+    for (let i = 0; i <= attacks; i++) {
+      const isTotalHits = (i === attacks);
+      hitProbabilities[i] = {
+        exact: isTotalHits ? 1.0 : 0.0,
+        // The probability of getting i or more hits is 1.0 for all i <= attacks.
+        orHigher: 1.0,
+      };
+    }
+  } else {
+    if (modifiers.sustainedHits && modifiers.sustainedHits > 0) {
+      // With Sustained Hits, a '6' is worth (1 + X) hits.
+      effectivePHit = pNormalHit + (1 + modifiers.sustainedHits) * pCritHit;
+    }
+
+    const hitTarget = sides - (sides * effectivePHit);
+    hitProbabilities = getDiceProbabilities(attacks, sides, hitTarget, modifiers.rerollHits);
+  }
+
+  // --- Stage 2: Calculate Wound Probabilities ---
+
+  let woundProbabilities: DiceProbability[];
+
+  if (modifiers.lethalHits) {
+    // Lethal Hits bypass the hit distribution. We calculate a new effective
+    // probability from the start of the attack.
+    const pWoundSuccess = (sides - woundValue + 1) / sides;
+    const pFromLethal = pCritHit; // A '6' on the hit roll auto-wounds.
+    const pFromNormal = pNormalHit * pWoundSuccess; // A normal hit that then wounds.
+
+    const effectivePWound = pFromLethal + pFromNormal;
+    const effectiveWoundTarget = sides - (sides * effectivePWound);
+
+    // Note: This is an approximation based on the initial number of attacks.
+    woundProbabilities = getDiceProbabilities(attacks, sides, effectiveWoundTarget);
+  } else {
+    // Standard calculation using the hit results.
+    woundProbabilities = getCumulativeProbabilities(hitProbabilities, woundValue, attacks, sides);
+  }
+
+  // --- Stage 3: Calculate Unsaved Wound Probabilities ---
+
+  let unsavedWoundProbabilities: DiceProbability[];
+  const saveTarget = valueToTarget(saveValue, sides);
+  if (modifiers.devastatingWounds) {
+    // Devastating Wounds bypass the save roll. We calculate a new effective
+    // probability for a wound to get past the save.
+    const pCritWound = 1 / sides;
+    const pSuccessWound = (sides - woundValue + 1) / sides;
+    const pNormalWound = pSuccessWound - pCritWound;
+    const pFailedSave = (saveValue - 1) / sides;
+
+    const pFromDevastating = pCritWound; // A '6' on the wound roll.
+    const pFromNormalUnsaved = pNormalWound * pFailedSave;
+
+    const effectivePUnsaved = pFromDevastating + pFromNormalUnsaved;
+    const effectiveUnsavedTarget = sides - (sides * effectivePUnsaved);
+
+    // This calculation assumes Lethal Hits do not trigger Devastating Wounds.
+    // We apply this effective probability to the results of the wound stage.
+    unsavedWoundProbabilities = getCumulativeProbabilities(woundProbabilities, effectiveUnsavedTarget, attacks, sides);
+
+  } else {
+    // Standard save calculation.
+    unsavedWoundProbabilities = getCumulativeProbabilities(woundProbabilities, saveTarget, attacks, sides);
+  }
+
+  return {
+    hits: hitProbabilities,
+    wounds: woundProbabilities,
+    saves: unsavedWoundProbabilities,
+  };
+}
+
+export function calculateVariableAttackSequence(
+  attackDiceNum: number,
+  attackDiceSides: number,
+  attackBonus: number,
+  sides: number,
+  hitValue: number,
+  woundValue: number,
+  saveValue: number,
+  modifiers: DatasheetModifiers,
+): CalculationResult {
+
+  const attackDistribution = getDiceSumDistribution(attackDiceNum, attackDiceSides);
+
+  const maxAttacks = (attackDistribution.length - 1) + attackBonus;
+
+  const finalHits: DiceProbability[] = Array(maxAttacks + 1).fill(0).map(() => ({ exact: 0, orHigher: 0 }));
+  const finalWounds: DiceProbability[] = Array(maxAttacks + 1).fill(0).map(() => ({ exact: 0, orHigher: 0 }));
+  const finalUnsaved: DiceProbability[] = Array(maxAttacks + 1).fill(0).map(() => ({ exact: 0, orHigher: 0 }));
+
+  // *** THIS LOOP IS THE PRIMARY CHANGE ***
+  // Iterate over the DiceProbability[] array.
+  for (let rollSum = 0; rollSum < attackDistribution.length; rollSum++) {
+    const probOfRoll = attackDistribution[rollSum].exact;
+    if (probOfRoll === 0) continue; // Skip sums with zero probability
+
+    const numAttacks = rollSum + attackBonus;
+
+    const sequenceResult = calculateAttackSequence(
+      numAttacks, sides, hitValue, woundValue, saveValue, modifiers
+    );
+
+    for (let i = 0; i <= numAttacks; i++) {
+      finalHits[i].exact += sequenceResult.hits[i]?.exact * probOfRoll || 0;
+      finalWounds[i].exact += sequenceResult.wounds[i]?.exact * probOfRoll || 0;
+      finalUnsaved[i].exact += sequenceResult.saves[i]?.exact * probOfRoll || 0;
+    }
+  }
+
+  // Recalculate 'orHigher' probabilities from the final 'exact' values.
+  let cumulativeHits = 0, cumulativeWounds = 0, cumulativeUnsaved = 0;
+  for (let i = maxAttacks; i >= 0; i--) {
+    cumulativeHits += finalHits[i].exact;
+    finalHits[i].orHigher = cumulativeHits;
+
+    cumulativeWounds += finalWounds[i].exact;
+    finalWounds[i].orHigher = cumulativeWounds;
+
+    cumulativeUnsaved += finalUnsaved[i].exact;
+    finalUnsaved[i].orHigher = cumulativeUnsaved;
+  }
+
+  return {
+    attacks: attackDistribution,
+    hits: finalHits,
+    wounds: finalWounds,
+    saves: finalUnsaved,
+  };
+}
+
+export const getDatasheetStatString = (datasheet: Datasheet) => {
+  return `T${datasheet.stats.toughness} W${datasheet.stats.wounds}  ${datasheet.stats.save}+ ${datasheet.stats.invulnerableSave}++ ${datasheet.stats.feelNoPain? datasheet.stats.feelNoPain + '+++':''  }`.trim();
+};

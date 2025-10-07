@@ -1,4 +1,4 @@
-import DashboardPage from "~/pages/dashboard";
+
 import type { Route } from "./+types/battles";
 import { getBattleReports, getLists } from "~/components/armyList/service";
 import useAppStore from "~/lib/store";

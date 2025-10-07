@@ -53,7 +53,7 @@ function ProfileAvatar({ user }: { user: User }) {
   return (
     <Avatar className="rounded-lg">
       <AvatarImage src='' alt={user.name} />
-      <AvatarFallback className="rounded-lg">{user.username?.charAt(0)}</AvatarFallback>
+      <AvatarFallback className="rounded-lg">{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
     </Avatar>
   )
 }

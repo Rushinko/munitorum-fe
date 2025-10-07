@@ -4,11 +4,13 @@ import { defaultDatasheet, type Datasheet } from "~/components/datasheets/types"
 import { v4 as uuidv4 } from 'uuid';
 import type { DatasheetActions, DatasheetStats } from "~/components/datasheets/types";
 import { da } from "zod/v4/locales";
+import type { CalculationResult } from "~/components/calculator/types";
 
 type ToolsState = {
   attackersIds: string[],
   defendersIds: string[],
   datasheets: Datasheet[],
+  results: CalculationResult | null,
 }
 
 type ToolsActions = {
@@ -17,6 +19,7 @@ type ToolsActions = {
   datasheetActions: DatasheetActions;
   addAttacker: (datasheetId: string) => void;
   addDefender: (datasheetId: string) => void;
+  setResults: (results: CalculationResult[]) => void;
 }
 
 type ToolsStore = ToolsState & ToolsActions;
@@ -25,6 +28,7 @@ const useToolsStore = create<ToolsStore>()(immer((set) => ({
   attackersIds: [],
   defendersIds: [],
   datasheets: [],
+  results: null,
   addDatasheet: () => {
     const newId = uuidv4();
     set(state => {
@@ -49,7 +53,7 @@ const useToolsStore = create<ToolsStore>()(immer((set) => ({
         }
       });
     },
-    updateDatasheetField(datasheetId, field, value) {
+    updateDatasheetField: (datasheetId, field, value) => {
       set(state => {
         const datasheet = state.datasheets.find((ds) => ds.id === datasheetId);
         if (datasheet) {
@@ -57,27 +61,32 @@ const useToolsStore = create<ToolsStore>()(immer((set) => ({
         }
       });
     },
+    deleteDatasheet: (datasheetId) => set(state => {
+      state.datasheets = state.datasheets.filter(ds => ds.id !== datasheetId);
+      state.attackersIds = state.attackersIds.filter(id => id !== datasheetId);
+      state.defendersIds = state.defendersIds.filter(id => id !== datasheetId);
+    }),
     addWeaponProfile: (datasheetId) => set(state => ({
       datasheets: state.datasheets.map(ds =>
         ds.id === datasheetId
-          ? { ...ds, weaponProfiles: [...ds.weaponProfiles, { id: uuidv4(), name: '', attacks: 0, weaponSkill: 0, strength: 0, armorPenetration: 0, damage: 0 }] }
+          ? { ...ds, weaponProfiles: [...ds.weaponProfiles, { id: uuidv4(), name: '', attacks: 0, weaponSkill: 0, strength: 0, armorPenetration: 0, damage: '0' }] }
           : ds
       )
     })),
-    removeWeaponProfile: (datasheetId, profileId) => set(state => ({
-      datasheets: state.datasheets.map(ds =>
-        ds.id === datasheetId
-          ? { ...ds, weaponProfiles: [...ds.weaponProfiles, { id: uuidv4(), name: '', attacks: 0, weaponSkill: 0, strength: 0, armorPenetration: 0, damage: 0 }] }
-          : ds
-      )
-    })),
-    updateWeaponProfile: (datasheetId, profileId, field, value) => set(state => {
+    removeWeaponProfile: (datasheetId, profileId) => set(state => {
       const datasheet = state.datasheets.find(ds => ds.id === datasheetId);
       if (!datasheet) return;
-      const profile = datasheet.weaponProfiles.find(p => p.id === profileId);
-      if (!profile) return;
-      (profile[field] as typeof value) = value;
-    })
+      datasheet.weaponProfiles = datasheet.weaponProfiles.filter(p => p.id !== profileId);
+    }),
+    updateWeaponProfile: (datasheetId, profileId, field, value) => {
+      set(state => {
+        const datasheet = state.datasheets.find(ds => ds.id === datasheetId);
+        if (!datasheet) return;
+        const profile = datasheet.weaponProfiles.find(p => p.id === profileId);
+        if (!profile) return;
+        (profile[field] as typeof value) = value;
+      })
+    }
   },
   addAttacker: (datasheetId) => set(state => ({
     attackersIds: [...state.attackersIds, datasheetId]
@@ -85,6 +94,9 @@ const useToolsStore = create<ToolsStore>()(immer((set) => ({
   addDefender: (datasheetId) => set(state => ({
     defendersIds: [...state.defendersIds, datasheetId]
   })),
+  setResults: (results) => set(state => ({
+    results: results
+  }))
 
 })));
 

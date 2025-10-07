@@ -1,10 +1,26 @@
+
 export type Datasheet = {
   id: string;
   name: string;
   models: number;
   stats: DatasheetStats;
+  open?: boolean;
   weaponProfiles: WeaponProfile[];
 };
+
+export type DatasheetModifiers = {
+  cover: boolean;
+  hitModifier: number;
+  woundModifier: number;
+  rerollHits: 'none' | 'all' | 'ones';
+  rerollWounds: 'none' | 'all' | 'ones';
+  rerollSaves: 'none' | 'all' | 'ones';
+  sustainedHits: number;
+  lethalHits: boolean;
+  criticalHits: number;
+  criticalWounds: number;
+  devastatingWounds: boolean;
+}
 
 export type DatasheetStats = {
   movement: number;
@@ -18,7 +34,7 @@ export type DatasheetStats = {
 export type WeaponProfile = {
   id: string;
   name: string;
-  attacks: number;
+  attacks: string;
   weaponSkill: number;
   strength: number;
   armorPenetration: number;
@@ -29,24 +45,42 @@ export type WeaponStats = Omit<WeaponProfile, 'id'>;
 
 export type DatasheetActions = {
   updateDatasheet: (datasheetId: string, data: Partial<Datasheet>) => void;
-  updateDatasheetField: (datasheetId: string, field: keyof Datasheet, value: string | number) => void;
+  updateDatasheetField: (datasheetId: string, field: keyof Datasheet, value: Datasheet[typeof field]) => void;
   updateDatasheetStat: (datasheetId: string, stat: keyof DatasheetStats, value: string | number) => void;
+  deleteDatasheet?: (datasheetId: string) => void;
   addWeaponProfile: (datasheetId: string) => void;
   removeWeaponProfile: (datasheetId: string, profileId: string) => void;
   updateWeaponProfile: (datasheetId: string, profileId: string, field: keyof Omit<WeaponProfile, 'id'>, value: string | number) => void;
 }
 
+const defaultDatasheetStat: DatasheetStats = {
+  movement: 0,
+  toughness: 0,
+  wounds: 0,
+  save: 0,
+  invulnerableSave: 0,
+  feelNoPain: 0,
+}
+
+export const defaultDatasheetModifiers: DatasheetModifiers = {
+  cover: false,
+  hitModifier: 0,
+  woundModifier: 0,
+  rerollHits: 'none',
+  rerollWounds: 'none',
+  rerollSaves: 'none',
+  sustainedHits: 0,
+  lethalHits: false,
+  criticalHits: 0,
+  criticalWounds: 0,
+  devastatingWounds: false,
+}
+
 export const defaultDatasheet: Omit<Datasheet, 'id'> = {
   name: 'New Datasheet',
   models: 1,
-  stats: {
-    movement: 0,
-    toughness: 0,
-    wounds: 0,
-    save: 0,
-    invulnerableSave: 0,
-    feelNoPain: 0,
-  },
+  stats: defaultDatasheetStat,
+  open: true,
   weaponProfiles: [],
 };
 

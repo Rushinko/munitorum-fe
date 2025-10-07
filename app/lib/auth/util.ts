@@ -1,8 +1,8 @@
 import type { UseFormReturn } from "react-hook-form";
 import type { ApiError } from "~/lib/service";
 import * as z from "zod";
-import type { loginFormSchema } from "~/pages/auth/login/loginForm";
-import type { signupFormSchema } from "~/pages/auth/signup/signupForm";
+import type { loginFormSchema } from "~/routes/app/auth/login/loginForm";
+import type { signupFormSchema } from "~/routes/app/auth/signup/signupForm";
 
 export type AuthError = {
   errors: {

@@ -1,3 +1,5 @@
+import React from 'react'
+import type { Route } from "../../../+types/signup";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +21,14 @@ import { postSignup } from "./services";
 import type { AxiosError } from "axios";
 import { setFormErrors, type AuthError } from "../util";
 
+
+export function meta({ }: Route.MetaArgs) {
+  return [
+    { title: "Munitorum" },
+    { name: "description", content: "Sign up for Munitorum" },
+  ];
+}
+
 export const signupFormSchema = z.object({
   username: z.string().min(4, { error: "Username must be at least 4 characters long" }).max(20, { error: "Username must be at most 20 characters long" }).regex(/^[a-zA-Z0-9]+$/, {
     error: "Username can only contain alphanumeric characters",
@@ -34,7 +44,7 @@ export const signupFormSchema = z.object({
 
 type SignupFormProps = React.ComponentProps<"form">;
 
-export function SignupForm({
+export default function Signup({
   className,
   ...props
 }: SignupFormProps) {
