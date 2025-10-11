@@ -1,7 +1,7 @@
 import type { Route } from "./+types/home";
 import { handleLoggedInCheck } from "~/lib/service";
 import { redirect } from "react-router";
-import { MunitorumLandingPage } from "~/components/welcome/welcome";
+import { LandingPage } from "~/components/welcome/landingPage";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -19,6 +19,6 @@ export async function clientLoader({params}: Route.ClientLoaderArgs) {
 
 export default function Home() {
   return (
-      <MunitorumLandingPage />
+      <LandingPage />
   );
 }

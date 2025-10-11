@@ -26,7 +26,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 const DatasheetList = ({ datasheets, datasheetActions }: { datasheets: Datasheet[], datasheetActions: DatasheetActions }) => {
   return (
-    <motion.div className="flex justify-start gap-4 flex-col">
+    <motion.div className="flex max-w-md md:max-w-full justify-start gap-4 flex-col ">
       <AnimatePresence mode="sync">
         {datasheets.map(ds => (
           <motion.div
@@ -78,8 +78,8 @@ export default function Calculator(props: Route.ComponentProps) {
   }
 
   return (
-    <div className="flex flex-col max-w-6xl p-4 gap-4">
-      <Breadcrumb>
+    <div className="flex flex-col xs:max-w-sm sm:w-lg md:w-7xl p-4 gap-4">
+      <Breadcrumb className="hidden sm:flex">
         <BreadcrumbList>
           <BreadcrumbItem>
             <Link to="/app">Home</Link>
@@ -94,7 +94,7 @@ export default function Calculator(props: Route.ComponentProps) {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <Card className="w-full flex flex-col gap-4 p-2">
+      <Card className="w-sm sm:w-full flex flex-col gap-4 p-2">
         {/* <Separator /> */}
         <ModifiersTable modifiers={modifiers} updateModifier={(key, value) => setModifiers(prev => ({ ...prev, [key]: value }))} />
       </Card>

@@ -6,9 +6,10 @@ export type CalculationResult = {
   defender?: string;
   weapon?: string;
   attacks?: number | DiceProbability[]
+  mortalWounds?: DiceProbability[]
   hits: DiceProbability[];
   wounds: DiceProbability[];
   saves: DiceProbability[];
-  damagePerModel?: number;
-  totalDamage?: number;
+  damagePerModel?: number | DiceProbability[];
+  totalDamage?: number | DiceProbability[];
 };

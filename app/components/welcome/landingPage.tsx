@@ -3,11 +3,11 @@ import HeroSection from './heroSection'
 import FeatureHighlightSection from './featureHighlightSection'
 import LineCommentingFeature from './lineCommentingFeature'
 import StatsAndGallerySection from './statsAndGallarySection'
-import AppHeader from '../../components/ui/appHeader'
+import AppHeader from '../ui/appHeader'
 import CallToActionSection from './callToActionSection'
 
 // Main Component: Munitorum Landing Page
-export function MunitorumLandingPage() {
+export function LandingPage() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
       <AppHeader />

@@ -1,6 +1,6 @@
 import type { CalculationResult } from "~/components/calculator/types";
 import type { Datasheet, DatasheetModifiers, WeaponProfile } from "~/components/datasheets/types";
-import { getCumulativeProbabilities, getDiceProbabilities, getDiceSumDistribution, valueToTarget, type DiceProbability } from "~/lib/probability";
+import { convolvePower, getBinomialDistribution, getConvolvedDistribution, getCumulativeProbabilities, getDiceProbabilities, getDiceSumDistribution, trimInsignificantProbabilities, valueToTarget, type DiceProbability } from "~/lib/probability";
 
 const SIDES = 6;
 
@@ -32,6 +32,7 @@ export const runCalculation = (attackers: Datasheet[], defenders: Datasheet[], m
         const isVariableAttacks = (!(attacks?.count === 0 || attacks === null || attacks.count === undefined) && attacks?.count > 0);
         const effectiveSave = Math.min(defender.stats.save + Math.abs(weapon.armorPenetration), defender.stats.invulnerableSave === 0 ? 7 : defender.stats.invulnerableSave);
         const woundTarget = getWoundTarget(weapon.strength, defender.stats.toughness, modifiers);
+        console.log(woundTarget);
         let result: CalculationResult = { hits: [], wounds: [], saves: [] };
         if (isVariableAttacks) {
           result = calculateVariableAttackSequence(
@@ -82,7 +83,13 @@ const averageDamage = (damage: string): number => {
   return 0;
 };
 
-
+/**
+ * Determines the target number needed to wound a target based on the attacker's strength and the target's toughness.
+ * @param strength The strength of the attacking unit.
+ * @param toughness The toughness of the defending unit.
+ * @param modifiers Any modifiers that may affect the wound calculation.
+ * @returns The target number needed to successfully wound the target.
+ */
 const getWoundTarget = (strength: number, toughness: number, modifiers: DatasheetModifiers): number => {
   let ret;
   if (strength >= 2 * toughness) ret = 2;
@@ -98,9 +105,242 @@ const getWoundTarget = (strength: number, toughness: number, modifiers: Datashee
   return ret;
 };
 
-const getDamageProbabilities = (weapon: WeaponProfile, unsavedWounds: DiceProbability[], modifiers: DatasheetModifiers): DiceProbability[] => {
-  const damageProbabilities: DiceProbability[] = [];
+/**
+ * Calculates the probability of rolling a target value or higher on a die.
+ * e.g., a 4+ on a d6 is getSuccessProbability(4, 6) = 3/6 = 0.5.
+ */
+function getSuccessProbability(targetValue: number, sides: number): number {
+  if (targetValue <= 1) return 1.0;
+  if (targetValue > sides) return 0.0;
+  return (sides - targetValue + 1) / sides;
+}
 
+/**
+ * Creates a probability distribution for an auto-success event.
+ */
+function createAutoSuccessDistribution(count: number): DiceProbability[] {
+  const distribution: DiceProbability[] = Array(count + 1);
+  for (let i = 0; i <= count; i++) {
+    distribution[i] = {
+      exact: (i === count) ? 1.0 : 0.0,
+      orHigher: 1.0,
+    };
+  }
+  return distribution;
+}
+
+/**
+ * Recalculates the 'orHigher' probabilities from the 'exact' ones.
+ */
+function recalculateOrHigher(probabilities: DiceProbability[]): void {
+  let cumulativeProb = 0;
+  for (let i = probabilities.length - 1; i >= 0; i--) {
+    cumulativeProb += probabilities[i].exact;
+    probabilities[i].orHigher = cumulativeProb;
+  }
+}
+
+
+function processHitStage(
+  attacks: number,
+  sides: number,
+  hitValue: number,
+  modifiers: DatasheetModifiers
+): DiceProbability[] {
+  // Handle auto-hitting attacks
+  if (hitValue === 0) {
+    return createAutoSuccessDistribution(attacks);
+  }
+
+  // Sustained Hits requires the convolution method.
+  if (modifiers.sustainedHits && modifiers.sustainedHits > 0) {
+    const pSuccess = getSuccessProbability(hitValue, sides);
+    
+    // If Sustained Hits is active, the default critical hit should be the highest
+    // face of the die (e.g., 6), not an impossible value.
+    const critTarget = modifiers.criticalHits > 0 ? modifiers.criticalHits : sides;
+
+    const pCrit = getSuccessProbability(critTarget, sides);
+    
+    // Ensure pNormal isn't negative if hit and crit values overlap.
+    const pNormal = Math.max(0, pSuccess - pCrit);
+    const pMiss = 1 - pNormal - pCrit;
+
+    const numBonusHits = modifiers.sustainedHits;
+    const maxHitsFromOneDie = 1 + numBonusHits;
+
+    // Create the probability distribution for a SINGLE die roll.
+    const singleDieDistribution = new Array(maxHitsFromOneDie + 1).fill(0);
+
+    singleDieDistribution[0] = pMiss;
+    if (pNormal > 0) { singleDieDistribution[1] = pNormal; }
+    if (pCrit > 0) { singleDieDistribution[maxHitsFromOneDie] = pCrit; }
+    
+    // Convolve the distribution for the total number of attacks.
+    const exactProbabilities = convolvePower(singleDieDistribution, attacks);
+
+    // Convert the result into the DiceProbability[] format.
+    const hitProbabilities: DiceProbability[] = exactProbabilities.map(p => ({ exact: p, orHigher: 0 }));
+    recalculateOrHigher(hitProbabilities);
+    return hitProbabilities;
+
+  } else {
+    // Standard logic for non-sustained hits.
+    return getDiceProbabilities(attacks, sides, hitValue, modifiers.rerollHits);
+  }
+}
+
+function processWoundStage(
+  attacks: number,
+  hitProbabilities: DiceProbability[],
+  sides: number,
+  hitValue: number,
+  woundValue: number,
+  modifiers: DatasheetModifiers
+): DiceProbability[] {
+  // Standard calculation: apply wound probability to the distribution of hits.
+  if (!modifiers.lethalHits) {
+    return getCumulativeProbabilities(hitProbabilities, woundValue, attacks, sides);
+  }
+
+  // --- Lethal Hits Logic ---
+  const critTarget = (modifiers.criticalHits && modifiers.criticalHits > 0) ? modifiers.criticalHits : sides;
+  const pSuccessHit = getSuccessProbability(hitValue, sides);
+  
+  // Avoid division by zero if hits are impossible
+  if (pSuccessHit === 0) {
+    const emptyDist = new Array(attacks + 1).fill(0).map(() => ({ exact: 0, orHigher: 0 }));
+    emptyDist[0].orHigher = 1.0;
+    return emptyDist;
+  }
+  
+  const pCritHit = getSuccessProbability(critTarget, sides);
+  
+  // Probability that a successful hit is a critical one (and thus auto-wounds).
+  const pCritGivenSuccess = pCritHit / pSuccessHit;
+  const pWoundOnNormalHit = getSuccessProbability(woundValue, sides);
+
+  const maxWounds = hitProbabilities.length - 1;
+  const finalWoundProbs = new Array(maxWounds + 1).fill(0);
+
+  // For each possible number of hits...
+  for (let numHits = 1; numHits <= maxWounds; numHits++) {
+    const probOfThisManyHits = hitProbabilities[numHits].exact;
+    if (probOfThisManyHits === 0) continue;
+
+    // ...calculate the distribution of how many of those hits were criticals.
+    const critDistribution = getBinomialDistribution(numHits, pCritGivenSuccess);
+    
+    for (let numCrits = 0; numCrits <= numHits; numCrits++) {
+      const probOfThisManyCrits = critDistribution[numCrits];
+      if (probOfThisManyCrits === 0) continue;
+      
+      const numNormalHits = numHits - numCrits;
+      
+      // For the remaining normal hits, calculate the distribution of successful wounds.
+      const normalWoundDistribution = getBinomialDistribution(numNormalHits, pWoundOnNormalHit);
+
+      for (let numNormalWounds = 0; numNormalWounds <= numNormalHits; numNormalWounds++) {
+        const probOfThisManyNormalWounds = normalWoundDistribution[numNormalWounds];
+        if (probOfThisManyNormalWounds === 0) continue;
+        
+        const totalWounds = numCrits + numNormalWounds; // Auto-wounds + normal wounds
+        
+        // The final probability is the chain of all events occurring.
+        finalWoundProbs[totalWounds] += probOfThisManyHits * probOfThisManyCrits * probOfThisManyNormalWounds;
+      }
+    }
+  }
+
+  // The chance of getting 0 wounds is 1 minus the chance of getting any wound.
+  // Or more simply, add the probability of getting 0 hits in the first place.
+  finalWoundProbs[0] = hitProbabilities[0]?.exact ?? 0;
+  let totalProb = finalWoundProbs.reduce((sum, p) => sum + p, 0);
+  finalWoundProbs[0] += (1 - totalProb); // Account for rounding errors and the 0-hit case.
+
+  // Convert to the final format.
+  const woundDistribution: DiceProbability[] = finalWoundProbs.map(p => ({ exact: p, orHigher: 0 }));
+  recalculateOrHigher(woundDistribution); // Your existing helper to fill in 'orHigher'
+  
+  return woundDistribution;
+}
+
+function processSaveStage(
+  attacks: number, // Max possible successes
+  woundProbabilities: DiceProbability[],
+  sides: number,
+  woundValue: number,
+  saveValue: number,
+  modifiers: DatasheetModifiers
+): DiceProbability[] {
+  // Standard calculation: apply save probability to the distribution of wounds.
+  if (!modifiers.devastatingWounds) {
+    return getCumulativeProbabilities(woundProbabilities, saveValue, attacks, sides);
+  }
+
+  // --- Devastating Wounds Logic ---
+  const pSuccessWound = getSuccessProbability(woundValue, sides);
+
+  // Avoid division by zero if wounds are impossible.
+  if (pSuccessWound === 0) {
+    const emptyDist = new Array(attacks + 1).fill(0).map(() => ({ exact: 0, orHigher: 0 }));
+    emptyDist[0].orHigher = 1.0;
+    return emptyDist;
+  }
+  
+  // IMPORTANT: Devastating Wounds typically triggers on a 6 to wound, regardless of hit modifiers.
+  const critWoundTarget = sides; 
+  const pCritWound = getSuccessProbability(critWoundTarget, sides);
+
+  // Probability that a successful wound is a critical one (and thus auto-succeeds).
+  const pCritGivenSuccess = pCritWound / pSuccessWound;
+  const pFailedSaveOnNormalWound = 1 - getSuccessProbability(saveValue, sides);
+
+  const maxUnsaved = woundProbabilities.length - 1;
+  const finalUnsavedProbs = new Array(maxUnsaved + 1).fill(0);
+
+  // For each possible number of incoming wounds...
+  for (let numWounds = 1; numWounds <= maxUnsaved; numWounds++) {
+    const probOfThisManyWounds = woundProbabilities[numWounds].exact;
+    if (probOfThisManyWounds === 0) continue;
+
+    // ...calculate the distribution of how many of those wounds were criticals.
+    const critDistribution = getBinomialDistribution(numWounds, pCritGivenSuccess);
+    
+    for (let numCrits = 0; numCrits <= numWounds; numCrits++) {
+      const probOfThisManyCrits = critDistribution[numCrits];
+      if (probOfThisManyCrits === 0) continue;
+      
+      const numNormalWounds = numWounds - numCrits;
+      
+      // For the remaining normal wounds, calculate the distribution of failed saves.
+      const failedSavesDistribution = getBinomialDistribution(numNormalWounds, pFailedSaveOnNormalWound);
+
+      for (let numFailedSaves = 0; numFailedSaves <= numNormalWounds; numFailedSaves++) {
+        const probOfThisManyFailedSaves = failedSavesDistribution[numFailedSaves];
+        if (probOfThisManyFailedSaves === 0) continue;
+        
+        const totalUnsaved = numCrits + numFailedSaves; // Auto-successes + failed saves
+        
+        // The final probability is the chain of all events occurring.
+        finalUnsavedProbs[totalUnsaved] += probOfThisManyWounds * probOfThisManyCrits * probOfThisManyFailedSaves;
+      }
+    }
+  }
+
+  // The chance of getting 0 unsaved wounds includes the chance of getting 0 wounds to begin with.
+  finalUnsavedProbs[0] += woundProbabilities[0]?.exact ?? 0;
+  // Normalize to account for any floating point dust.
+  const totalProb = finalUnsavedProbs.reduce((sum, p) => sum + p, 0);
+  if (totalProb < 1.0) {
+    finalUnsavedProbs[0] += (1 - totalProb);
+  }
+
+  // Convert to the final format.
+  const unsavedDistribution: DiceProbability[] = finalUnsavedProbs.map(p => ({ exact: p, orHigher: 0 }));
+  recalculateOrHigher(unsavedDistribution);
+  
+  return unsavedDistribution;
 }
 
 export function calculateAttackSequence(
@@ -111,93 +351,22 @@ export function calculateAttackSequence(
   saveValue: number,
   modifiers: DatasheetModifiers,
 ): CalculationResult {
+  const attackProbabilities = getDiceProbabilities(attacks, sides, 1); // Every attack is a "success"
 
-  // --- Stage 1: Calculate Hit Probabilities ---
+  // --- Stage 1: Hits ---
+  const hitProbabilities = processHitStage(attacks, sides, hitValue, modifiers);
 
-  let hitProbabilities: DiceProbability[];
+  // --- Stage 2: Wounds ---
+  const woundProbabilities = processWoundStage(attacks, hitProbabilities, sides, hitValue, woundValue, modifiers);
 
-  // --- MODIFICATION START ---
-  // Check for auto-hitting attacks.
-  const pCritHit = (sides - modifiers.criticalHits + 1) / sides;
-  const pSuccessHit = (sides - hitValue + 1) / sides;
-  const pNormalHit = pSuccessHit - pCritHit;
-
-  let effectivePHit = pSuccessHit;
-  if (hitValue === 0) {
-    // Manually construct the hit probabilities array.
-    // The probability of getting exactly 'attacks' number of hits is 1.0.
-    // The probability of getting any other number of hits is 0.
-    hitProbabilities = new Array(attacks + 1);
-    for (let i = 0; i <= attacks; i++) {
-      const isTotalHits = (i === attacks);
-      hitProbabilities[i] = {
-        exact: isTotalHits ? 1.0 : 0.0,
-        // The probability of getting i or more hits is 1.0 for all i <= attacks.
-        orHigher: 1.0,
-      };
-    }
-  } else {
-    if (modifiers.sustainedHits && modifiers.sustainedHits > 0) {
-      // With Sustained Hits, a '6' is worth (1 + X) hits.
-      effectivePHit = pNormalHit + (1 + modifiers.sustainedHits) * pCritHit;
-    }
-
-    const hitTarget = sides - (sides * effectivePHit);
-    hitProbabilities = getDiceProbabilities(attacks, sides, hitTarget, modifiers.rerollHits);
-  }
-
-  // --- Stage 2: Calculate Wound Probabilities ---
-
-  let woundProbabilities: DiceProbability[];
-
-  if (modifiers.lethalHits) {
-    // Lethal Hits bypass the hit distribution. We calculate a new effective
-    // probability from the start of the attack.
-    const pWoundSuccess = (sides - woundValue + 1) / sides;
-    const pFromLethal = pCritHit; // A '6' on the hit roll auto-wounds.
-    const pFromNormal = pNormalHit * pWoundSuccess; // A normal hit that then wounds.
-
-    const effectivePWound = pFromLethal + pFromNormal;
-    const effectiveWoundTarget = sides - (sides * effectivePWound);
-
-    // Note: This is an approximation based on the initial number of attacks.
-    woundProbabilities = getDiceProbabilities(attacks, sides, effectiveWoundTarget);
-  } else {
-    // Standard calculation using the hit results.
-    woundProbabilities = getCumulativeProbabilities(hitProbabilities, woundValue, attacks, sides);
-  }
-
-  // --- Stage 3: Calculate Unsaved Wound Probabilities ---
-
-  let unsavedWoundProbabilities: DiceProbability[];
-  const saveTarget = valueToTarget(saveValue, sides);
-  if (modifiers.devastatingWounds) {
-    // Devastating Wounds bypass the save roll. We calculate a new effective
-    // probability for a wound to get past the save.
-    const pCritWound = 1 / sides;
-    const pSuccessWound = (sides - woundValue + 1) / sides;
-    const pNormalWound = pSuccessWound - pCritWound;
-    const pFailedSave = (saveValue - 1) / sides;
-
-    const pFromDevastating = pCritWound; // A '6' on the wound roll.
-    const pFromNormalUnsaved = pNormalWound * pFailedSave;
-
-    const effectivePUnsaved = pFromDevastating + pFromNormalUnsaved;
-    const effectiveUnsavedTarget = sides - (sides * effectivePUnsaved);
-
-    // This calculation assumes Lethal Hits do not trigger Devastating Wounds.
-    // We apply this effective probability to the results of the wound stage.
-    unsavedWoundProbabilities = getCumulativeProbabilities(woundProbabilities, effectiveUnsavedTarget, attacks, sides);
-
-  } else {
-    // Standard save calculation.
-    unsavedWoundProbabilities = getCumulativeProbabilities(woundProbabilities, saveTarget, attacks, sides);
-  }
+  // --- Stage 3: Unsaved Wounds ---
+  const unsavedWoundProbabilities = processSaveStage(attacks, woundProbabilities, sides, woundValue, saveValue, modifiers);
 
   return {
-    hits: hitProbabilities,
-    wounds: woundProbabilities,
-    saves: unsavedWoundProbabilities,
+    attacks: attackProbabilities, 
+    hits: trimInsignificantProbabilities(hitProbabilities),
+    wounds: trimInsignificantProbabilities(woundProbabilities),
+    saves: trimInsignificantProbabilities(unsavedWoundProbabilities),
   };
 }
 
@@ -211,54 +380,48 @@ export function calculateVariableAttackSequence(
   saveValue: number,
   modifiers: DatasheetModifiers,
 ): CalculationResult {
-
   const attackDistribution = getDiceSumDistribution(attackDiceNum, attackDiceSides);
-
   const maxAttacks = (attackDistribution.length - 1) + attackBonus;
 
-  const finalHits: DiceProbability[] = Array(maxAttacks + 1).fill(0).map(() => ({ exact: 0, orHigher: 0 }));
-  const finalWounds: DiceProbability[] = Array(maxAttacks + 1).fill(0).map(() => ({ exact: 0, orHigher: 0 }));
-  const finalUnsaved: DiceProbability[] = Array(maxAttacks + 1).fill(0).map(() => ({ exact: 0, orHigher: 0 }));
+  // Initialize empty result arrays
+  const finalResult: CalculationResult = {
+    attacks: attackDistribution,
+    hits: Array(maxAttacks + 1).fill(null).map(() => ({ exact: 0, orHigher: 0 })),
+    wounds: Array(maxAttacks + 1).fill(null).map(() => ({ exact: 0, orHigher: 0 })),
+    saves: Array(maxAttacks + 1).fill(null).map(() => ({ exact: 0, orHigher: 0 })),
+  };
 
-  // *** THIS LOOP IS THE PRIMARY CHANGE ***
-  // Iterate over the DiceProbability[] array.
+  // Iterate over each possible number of attacks
   for (let rollSum = 0; rollSum < attackDistribution.length; rollSum++) {
-    const probOfRoll = attackDistribution[rollSum].exact;
-    if (probOfRoll === 0) continue; // Skip sums with zero probability
+    const probOfThisManyAttacks = attackDistribution[rollSum].exact;
+    if (probOfThisManyAttacks === 0) continue;
 
     const numAttacks = rollSum + attackBonus;
-
     const sequenceResult = calculateAttackSequence(
       numAttacks, sides, hitValue, woundValue, saveValue, modifiers
     );
 
+    // Weight the results of this sequence by its probability and add to the final tally
     for (let i = 0; i <= numAttacks; i++) {
-      finalHits[i].exact += sequenceResult.hits[i]?.exact * probOfRoll || 0;
-      finalWounds[i].exact += sequenceResult.wounds[i]?.exact * probOfRoll || 0;
-      finalUnsaved[i].exact += sequenceResult.saves[i]?.exact * probOfRoll || 0;
+      finalResult.hits[i].exact += (sequenceResult.hits[i]?.exact ?? 0) * probOfThisManyAttacks;
+      finalResult.wounds[i].exact += (sequenceResult.wounds[i]?.exact ?? 0) * probOfThisManyAttacks;
+      finalResult.saves[i].exact += (sequenceResult.saves[i]?.exact ?? 0) * probOfThisManyAttacks;
     }
   }
 
-  // Recalculate 'orHigher' probabilities from the final 'exact' values.
-  let cumulativeHits = 0, cumulativeWounds = 0, cumulativeUnsaved = 0;
-  for (let i = maxAttacks; i >= 0; i--) {
-    cumulativeHits += finalHits[i].exact;
-    finalHits[i].orHigher = cumulativeHits;
+  // Recalculate cumulative probabilities for the final distributions
+  recalculateOrHigher(finalResult.hits);
+  recalculateOrHigher(finalResult.wounds);
+  recalculateOrHigher(finalResult.saves);
 
-    cumulativeWounds += finalWounds[i].exact;
-    finalWounds[i].orHigher = cumulativeWounds;
-
-    cumulativeUnsaved += finalUnsaved[i].exact;
-    finalUnsaved[i].orHigher = cumulativeUnsaved;
-  }
-
+  // --- FINAL STEP: Trim the results before returning ---
   return {
-    attacks: attackDistribution,
-    hits: finalHits,
-    wounds: finalWounds,
-    saves: finalUnsaved,
+    attacks: finalResult.attacks,
+    hits: trimInsignificantProbabilities(finalResult.hits),
+    wounds: trimInsignificantProbabilities(finalResult.wounds),
+    saves: trimInsignificantProbabilities(finalResult.saves),
   };
-}
+};
 
 export const getDatasheetStatString = (datasheet: Datasheet) => {
   return `T${datasheet.stats.toughness} W${datasheet.stats.wounds}  ${datasheet.stats.save}+ ${datasheet.stats.invulnerableSave}++ ${datasheet.stats.feelNoPain? datasheet.stats.feelNoPain + '+++':''  }`.trim();
