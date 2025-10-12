@@ -115,7 +115,7 @@ export function convolvePower(dist: number[], power: number): number[] {
  * Combines two probability distributions to find the distribution of their sum.
  * (This is a discrete convolution, equivalent to polynomial multiplication).
  */
-function convolve(dist1: number[], dist2: number[]): number[] {
+export function convolve(dist1: number[], dist2: number[]): number[] {
   const newLength = dist1.length + dist2.length - 1;
   const result = new Array(newLength).fill(0);
 
@@ -242,6 +242,8 @@ export function trimInsignificantProbabilities(
 ): DiceProbability[] {
   // Find the index of the first element with an 'orHigher' probability
   // below the threshold.
+  if (distribution.length === 0 ) return [];
+  console.log(distribution)
   const trimIndex = distribution.findIndex(p => p.orHigher < threshold);
 
   // If no such element is found (all probabilities are significant),

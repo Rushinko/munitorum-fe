@@ -23,13 +23,13 @@ export default function ResultsSection({ results = null }: { results: Calculatio
   const [, forceUpdate] = React.useReducer(x => x + 1, 0)
 
 
-  const { hits: hitsArray, wounds: woundsArray, saves: savesArray } = results || {};
+  const { hits: hitsArray, wounds: woundsArray, unsaved: savesArray } = results || {};
 
   return (
     <div className='w-full flex gap-4 flex-row overflow-wrap max-w-full'>
       <Button onClick={forceUpdate}>Redraw</Button>
       <div className='flex flex-col min-w-60 min-h-60'>
-        <Results label="Hits" Result={results as CalculationResult} />
+        <Results label="Hits" array={results?.hits || []} />
       </div>
       <div className='flex flex-col min-w-60 min-h-60'>
         <h4 className='text-lg font-bold'>Wounds</h4>
