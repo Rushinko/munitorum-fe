@@ -11,7 +11,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { data } from 'react-router';
 import { Separator } from '../ui/separator';
-import { getDatasheetStatString } from '~/routes/app/tools/lib';
+import { getDatasheetStatString } from '~/lib/datasheetUtils';
+
 
 // Define a TypeScript interface for the structure of a weapon profile.
 // This ensures type safety for all profile objects.
@@ -19,10 +20,11 @@ import { getDatasheetStatString } from '~/routes/app/tools/lib';
 type DatasheetCardProps = {
   datasheet: Datasheet,
   actions: DatasheetActions,
+  className?: string,
 }
 
 // Main application component, now a React Functional Component (FC).
-const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions }: DatasheetCardProps) => {
+const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions, className }: DatasheetCardProps) => {
   const { weaponProfiles } = datasheet;
   const { updateDatasheetStat, updateDatasheetField, updateWeaponProfile, addWeaponProfile, removeWeaponProfile, deleteDatasheet } = actions;
 
@@ -91,7 +93,7 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions }: Dat
   };
 
   return (
-    <Card className='flex w-full'>
+    <Card className={`flex w-full flex-col ${className}`} >
       <Collapsible className='flex w-full flex-col' defaultOpen open={datasheet.open} onOpenChange={handleToggleOpen}>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center ">

@@ -26,7 +26,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 const DatasheetList = ({ datasheets, datasheetActions }: { datasheets: Datasheet[], datasheetActions: DatasheetActions }) => {
   return (
-    <motion.div className="flex max-w-md md:max-w-full justify-start gap-4 flex-col ">
+    <motion.div className="flex max-w-md md:max-w-full justify-start gap-4 flex-col">
       <AnimatePresence mode="sync">
         {datasheets.map(ds => (
           <motion.div
@@ -41,6 +41,17 @@ const DatasheetList = ({ datasheets, datasheetActions }: { datasheets: Datasheet
         ))}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+const AttackerDefenderCard = ({ title, onAdd, children }: { title: string, onAdd: () => void, children: React.ReactNode }) => {
+  return (
+    <div className="flex flex-1 min-w-lg max-w-xl xl:max-w-full h-fit flex-col gap-4">
+      <h2 className="text-xl font-bold ml-2">{title}
+        <Button className="ml-2 border-border border" variant="secondary" onClick={onAdd}><PlusIcon /></Button>
+      </h2>
+      {children}
+    </div>
   );
 }
 
@@ -100,19 +111,13 @@ export default function Calculator(props: Route.ComponentProps) {
       </Card>
       <div className="w-full flex flex-col gap-4 max-w-full">
         <div className="flex flex-wrap justify-start gap-8 mb-8">
-          <div className="flex flex-1 min-w-lg max-w-xl xl:max-w-full h-fit flex-col gap-4">
-            <h2 className="text-xl font-bold mx-2">Attackers
-              <Button className="ml-2" variant="secondary" onClick={() => handleAddDatasheet(true)}><PlusIcon /></Button>
-            </h2>
+          <AttackerDefenderCard title="Attackers" onAdd={() => handleAddDatasheet(true)}>
             <DatasheetList datasheets={datasheets.filter(ds => attackerIds.includes(ds.id))} datasheetActions={datasheetActions} />
-          </div>
+          </AttackerDefenderCard>
 
-          <div className="flex flex-1 min-w-lg max-w-xl xl:max-w-full h-fit flex-col gap-4">
-            <h2 className="text-xl font-bold ml-2">Defenders
-              <Button className="ml-2" variant="secondary" onClick={() => handleAddDatasheet(false)}><PlusIcon /></Button>
-            </h2>
+          <AttackerDefenderCard title="Defenders" onAdd={() => handleAddDatasheet(false)}>
             <DatasheetList datasheets={datasheets.filter(ds => defenderIds.includes(ds.id))} datasheetActions={datasheetActions} />
-          </div>
+          </AttackerDefenderCard>
         </div>
         <CardFooter className="flex justify-center">
           <Button size="2xl" variant="default" onClick={handleCalculate} disabled={!attackerIds.length || !defenderIds.length}>Calculate</Button>

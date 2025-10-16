@@ -12,9 +12,9 @@ export type DatasheetModifiers = {
   cover: boolean;
   hitModifier: number;
   woundModifier: number;
-  rerollHits: 'none' | 'all' | 'ones';
-  rerollWounds: 'none' | 'all' | 'ones';
-  rerollSaves: 'none' | 'all' | 'ones';
+  rerollHits: 'none' | 'fails' | 'ones' | 'non-crits';
+  rerollWounds: 'none' | 'fails' | 'ones' | 'non-crits';
+  rerollSaves: 'none' | 'fails' | 'ones' | 'non-crits';
   sustainedHits: number;
   lethalHits: boolean;
   criticalHits: number;

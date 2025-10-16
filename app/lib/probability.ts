@@ -74,17 +74,21 @@ function getBinomialCoefficient(n: number, k: number): number {
   return factorial(n) / (factorial(k) * factorial(n - k));
 }
 
-const calculateEffectiveProbability = (initialProbability: number, sides: number, rerollType: 'none' | 'ones' | 'all' = 'none'): number => {
+const calculateEffectiveProbability = (initialProbability: number, sides: number, rerollType: 'none' | 'ones' | 'fails' | 'non-crits' = 'none'): number => {
   switch (rerollType) {
     case 'ones':
       // Added probability = P(rolling a 1) * P(success on reroll)
       const probOfOne = 1 / sides;
       return initialProbability + (probOfOne * initialProbability);
-    case 'all':
+    case 'fails':
       // Added probability = P(initial fail) * P(success on reroll)
       const probOfFailure = 1 - initialProbability;
       return initialProbability + (probOfFailure * initialProbability);
     case 'none':
+      return initialProbability;
+    case 'non-crits':
+      const probOfNonCrits = (sides - 1) / sides;
+      return initialProbability + (probOfNonCrits * initialProbability);
     default:
       return initialProbability;
   }
@@ -156,7 +160,7 @@ export function getConvolvedDistribution(singleDieDist: number[], numDice: numbe
  * - `orHigher`: The probability of getting *k or more* successes.
  * The index of each array corresponds to the number of successes (k).
  */
-export function getDiceProbabilities(numDice: number, sides: number, target: number, rerollType: 'none' | 'ones' | 'all' = 'none'): DiceProbability[] {
+export function getDiceProbabilities(numDice: number, sides: number, target: number, rerollType: 'none' | 'ones' | 'fails' | 'non-crits' = 'none'): DiceProbability[] {
   if (numDice <= 0 || sides <= 0) {
     return [{ exact: 1.0, orHigher: 1.0 }];
   }
@@ -193,7 +197,7 @@ export function getDiceProbabilities(numDice: number, sides: number, target: num
   return results;
 }
 
-export function getCumulativeProbabilities(probabilities: DiceProbability[], target: number, trials: number, sides: number, reroll?: 'none' | 'ones' | 'all'): DiceProbability[] {
+export function getCumulativeProbabilities(probabilities: DiceProbability[], target: number, trials: number, sides: number, reroll?: 'none' | 'ones' | 'fails' | 'non-crits'): DiceProbability[] {
   // 1. This part remains the same: calculate the final 'exact' probabilities.
   const successProbabilityExact = new Array(trials + 1).fill(0);
 
@@ -243,7 +247,6 @@ export function trimInsignificantProbabilities(
   // Find the index of the first element with an 'orHigher' probability
   // below the threshold.
   if (distribution.length === 0 ) return [];
-  console.log(distribution)
   const trimIndex = distribution.findIndex(p => p.orHigher < threshold);
 
   // If no such element is found (all probabilities are significant),

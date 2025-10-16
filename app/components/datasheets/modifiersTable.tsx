@@ -48,8 +48,11 @@ export default function ModifiersTable({ modifiers, updateModifier }: ModifiersT
                   </SelectTrigger>
                   <SelectContent >
                     <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="fails">Fails</SelectItem>
                     <SelectItem value="ones">Ones</SelectItem>
+                    {
+                      key !== 'rerollSaves' && <SelectItem value="non-crits">Non-Crits</SelectItem>
+                    }
                   </SelectContent>
                 </Select>
               )}

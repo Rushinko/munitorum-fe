@@ -1,4 +1,3 @@
-import type { D } from "node_modules/framer-motion/dist/types.d-Cjd591yU";
 import type { DiceProbability, Probabilities } from "~/lib/probability";
 
 export type CalculationResult = {
@@ -6,13 +5,13 @@ export type CalculationResult = {
   defender?: string;
   weapon?: string;
   attacks: number | DiceProbability[]
-  mortalWounds?: DiceProbability[]
+  mortalWounds: DiceProbability[]
   hits: DiceProbability[];
   wounds: DiceProbability[];
   unsaved: DiceProbability[];
   devastatingWounds: DiceProbability[];
-  damagePerModel?: number | DiceProbability[];
-  totalDamage?: number | DiceProbability[];
+  damage: DiceProbability[];
+  totalDamage: DiceProbability[];
 };
 
 export type SaveStageResult = {
@@ -22,7 +21,13 @@ export type SaveStageResult = {
 };
 
 export type VariableDiceResult = {
-  count: number;
+  numDice: number;
   sides: number;
-  additional: number;
+  bonus: number;
+};
+
+export type DamageStageResult = {
+  mortalDamage: DiceProbability[];
+  normalDamage: DiceProbability[];
+  totalDamage: DiceProbability[];
 };
