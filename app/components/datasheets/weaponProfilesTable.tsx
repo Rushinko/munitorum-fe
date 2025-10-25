@@ -25,21 +25,21 @@ export default function WeaponProfilesTable({ profiles, onProfileChange, onProfi
   };
 
   return (
-      <Table className="text-left">
+      <Table className="text-left ">
         <TableHeader className="border-b border-accent">
           <TableRow>
-            <TableHead className="p-3 text-sm font-semibold text-muted-foreground uppercase w-40">Name</TableHead>
-            <TableHead className="p-3 text-sm font-semibold text-muted-foreground uppercase text-center w-24">A</TableHead>
-            <TableHead className="p-3 text-sm font-semibold text-muted-foreground uppercase text-center w-16">WS</TableHead>
-            <TableHead className="p-3 text-sm font-semibold text-muted-foreground uppercase text-center w-16">S</TableHead>
-            <TableHead className="p-3 text-sm font-semibold text-muted-foreground uppercase text-center w-16">AP</TableHead>
-            <TableHead className="p-3 text-sm font-semibold text-muted-foreground uppercase text-center w-24">D</TableHead>
+            <TableHead className="md:p-3 text-xs md:text-sm font-semibold text-muted-foreground uppercase w-40">Name</TableHead>
+            <TableHead className="md:p-3 text-xs md:text-sm font-semibold text-muted-foreground uppercase text-center w-24">A</TableHead>
+            <TableHead className="md:p-3 text-xs md:text-sm font-semibold text-muted-foreground uppercase text-center w-16">WS</TableHead>
+            <TableHead className="md:p-3 text-xs md:text-sm font-semibold text-muted-foreground uppercase text-center w-16">S</TableHead>
+            <TableHead className="md:p-3 text-xs md:text-sm font-semibold text-muted-foreground uppercase text-center w-16">AP</TableHead>
+            <TableHead className="md:p-3 text-xs md:text-sm font-semibold text-muted-foreground uppercase text-center w-24">D</TableHead>
           </TableRow>
         </TableHeader>
-          <TableBody className="min-w-full">
+          <TableBody className="min-w-full ">
             {profiles.map((profile) => (
-              <TableRow key={profile.id} className="border-b border-accent hover:bg-muted transition-colors">
-                <TableCell>
+              <TableRow key={profile.id} className="border-b border-accent hover:bg-muted transition-colors text-xs md:text-sm">
+                <TableCell className='p-0.5 md:p-2 w-40'>
                   <Input
                     type="text"
                     name="name"
@@ -51,8 +51,9 @@ export default function WeaponProfilesTable({ profiles, onProfileChange, onProfi
                 </TableCell>
                 {/* The key for the mapped input is now the stat name */}
                 {Object.keys(profile).filter(key => key !== 'id' && key !== 'name').map(stat => (
-                  <TableCell key={stat}>
+                  <TableCell key={stat} className='p-1 md:p-2 text-xs md:text-sm'>
                     <Input
+                      className='!text-xs md:text-sm'
                       type="text"
                       name={stat}
                       value={profile[stat as keyof WeaponStats]}
@@ -60,7 +61,7 @@ export default function WeaponProfilesTable({ profiles, onProfileChange, onProfi
                     />
                   </TableCell>
                 ))}
-                <TableCell className="text-end">
+                <TableCell className="text-end p-0 m-0 md:p-2 md:w-12">
                   <Button
                     variant="ghost"
                     onClick={() => handleRemoveProfile(profile.id)}

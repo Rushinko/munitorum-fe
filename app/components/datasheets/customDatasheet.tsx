@@ -93,7 +93,7 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions, class
   };
 
   return (
-    <Card className={`flex w-full flex-col ${className}`} >
+    <Card className={`flex w-full flex-col min-w-xs ${className}`} >
       <Collapsible className='flex w-full flex-col' defaultOpen open={datasheet.open} onOpenChange={handleToggleOpen}>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center ">
@@ -101,7 +101,7 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions, class
             <div className='flex flex-row gap-2 items-center self-center'>
 
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" className='p-0 mr-2'><ChevronDown className={`transition-transform duration-200 ${datasheet.open ? "rotate-180" : "rotate-0"}`} /></Button>
+                <Button variant="ghost" className='p-0 w-2 sm:w-4 sm:mr-2'><ChevronDown className={`transition-transform duration-200 ${datasheet.open ? "rotate-180" : "rotate-0"}`} /></Button>
               </CollapsibleTrigger>
               <div className='flex flex-row gap-2 items-center'>
 
@@ -111,7 +111,7 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions, class
                   placeholder='Datasheet name'
                   value={datasheet.name}
                   onChange={(e) => handleDatasheetFieldChange('name', e)}
-                  className={`text-xl w-full font-bold transition-[color,box-shadow] rounded-sm outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 bg-transparent focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive`}
+                  className={`text-md sm:text-xl w-full font-bold transition-[color,box-shadow] rounded-sm outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 bg-transparent focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive`}
                 />
                 {
                   !datasheet.open && (
@@ -124,11 +124,11 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions, class
             <div className='flex flex-row gap-2 items-center'>
               <div className='flex flex-row items-center text-end'>
 
-                <Label htmlFor='models' className='mr-2'>Models</Label>
+                <Label htmlFor='models' className='mr-2 text-xs sm:text-sm'>Models</Label>
                 <Input
                   key='models'
                   type="number"
-                  className='max-w-20 text-start'
+                  className='max-w-20 text-xs sm:max-w-20 text-start'
                   value={datasheet.models}
                   onChange={(e) => handleDatasheetFieldChange('models', e)}
                 />
@@ -152,8 +152,8 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions, class
           <div className="overflow-x-auto gap-2 flex flex-col">
             <div className='flex flex-row flex-grow gap-2 justify-evenly'>
               {Object.keys(datasheet.stats).filter(omitKeys).map((key) => (
-                <div key={key} className="p-3 flex flex-col text-center justify-center">
-                  <Label htmlFor={key} className='mb-1 text-center flex justify-center'>
+                <div key={key} className=" flex flex-col text-center justify-center">
+                  <Label htmlFor={key} className='mb-1 text-center text-xs sm:text-sm flex justify-center'>
                     {DatasheetStatShorthand[key as keyof typeof DatasheetStatShorthand] || key}
                   </Label>
                   <Input

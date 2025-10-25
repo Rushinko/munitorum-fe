@@ -26,7 +26,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 const DatasheetList = ({ datasheets, datasheetActions }: { datasheets: Datasheet[], datasheetActions: DatasheetActions }) => {
   return (
-    <motion.div className="flex max-w-md md:max-w-full justify-start gap-4 flex-col">
+    <motion.div className="flex max-w-full md:max-w-full gap-4 justify-start flex-col">
       <AnimatePresence mode="sync">
         {datasheets.map(ds => (
           <motion.div
@@ -46,10 +46,11 @@ const DatasheetList = ({ datasheets, datasheetActions }: { datasheets: Datasheet
 
 const AttackerDefenderCard = ({ title, onAdd, children }: { title: string, onAdd: () => void, children: React.ReactNode }) => {
   return (
-    <div className="flex flex-1 min-w-lg max-w-xl xl:max-w-full h-fit flex-col gap-4">
-      <h2 className="text-xl font-bold ml-2">{title}
-        <Button className="ml-2 border-border border" variant="secondary" onClick={onAdd}><PlusIcon /></Button>
+    <div className="flex flex-1 max-w-full md:max-w-xl sm:w-xl xl:max-w-full h-fit min-w-sm flex-col gap-4">
+      <h2 className=" text-xl font-bold sm:ml-2 self-start">{title}
+        <Button className=" hidden sm:flex ml-2 border-border border" variant="secondary" onClick={onAdd}><PlusIcon /></Button>
       </h2>
+      <Button className="sm:ml-2 text-md md:hidden border-border border" variant="secondary" onClick={onAdd}>{`Add ${title}`}<PlusIcon /></Button>
       {children}
     </div>
   );
@@ -89,8 +90,8 @@ export default function Calculator(props: Route.ComponentProps) {
   }
 
   return (
-    <div className="flex flex-col xs:max-w-sm sm:w-lg md:w-7xl p-4 gap-4">
-      <Breadcrumb className="hidden sm:flex">
+    <div className="flex flex-col justify-start items-center w-full mx-auto max-w-full xl:max-w-7xl gap-4">
+      <Breadcrumb className="hidden sm:flex self-start">
         <BreadcrumbList>
           <BreadcrumbItem>
             <Link to="/app">Home</Link>
@@ -105,12 +106,15 @@ export default function Calculator(props: Route.ComponentProps) {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <Card className="w-sm sm:w-full flex flex-col gap-4 p-2">
-        {/* <Separator /> */}
-        <ModifiersTable modifiers={modifiers} updateModifier={(key, value) => setModifiers(prev => ({ ...prev, [key]: value }))} />
-      </Card>
-      <div className="w-full flex flex-col gap-4 max-w-full">
-        <div className="flex flex-wrap justify-start gap-8 mb-8">
+      <div className="w-sm sm:w-lg md:w-xl lg:w-full max-w-full flex flex-col gap-4 ">
+        <Button size="2xl" variant="default" className="sm:max-w-48 sm:text" onClick={handleCalculate} disabled={!attackerIds.length || !defenderIds.length}>Calculate</Button>
+        <Card className="w-sm sm:w-lg min-w-sm md:w-xl flex-wrap lg:w-full max-w-full flex flex-col gap-4 p-2">
+          {/* <Separator /> */}
+          <ModifiersTable modifiers={modifiers} updateModifier={(key, value) => setModifiers(prev => ({ ...prev, [key]: value }))} />
+        </Card>
+      </div>
+      <div className="w-sm sm:w-lg md:w-xl lg:w-full max-w-full flex flex-col gap-4 ">
+        <div className="flex flex-wrap flex-col items-center lg:flex-row lg:items-start  gap-8 mb-8">
           <AttackerDefenderCard title="Attackers" onAdd={() => handleAddDatasheet(true)}>
             <DatasheetList datasheets={datasheets.filter(ds => attackerIds.includes(ds.id))} datasheetActions={datasheetActions} />
           </AttackerDefenderCard>
@@ -120,7 +124,7 @@ export default function Calculator(props: Route.ComponentProps) {
           </AttackerDefenderCard>
         </div>
         <CardFooter className="flex justify-center">
-          <Button size="2xl" variant="default" onClick={handleCalculate} disabled={!attackerIds.length || !defenderIds.length}>Calculate</Button>
+
         </CardFooter>
       </div >
       {

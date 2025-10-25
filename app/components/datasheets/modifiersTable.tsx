@@ -14,7 +14,7 @@ type ModifiersTableProps = {
 
 export default function ModifiersTable({ modifiers, updateModifier }: ModifiersTableProps) {
   return (
-    <Accordion type="single" collapsible className='w-full' >
+    <Accordion type="single" collapsible className='w-full min-w-sm' >
       <AccordionItem value="weapon-profiles" >
         <AccordionTrigger className='text-xl text-center rounded w-full px-4 hover:bg-accent/20 duration-200'>
           Modifiers

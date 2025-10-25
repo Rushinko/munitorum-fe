@@ -3,6 +3,7 @@ import { Button, buttonVariants } from './button'
 import { Link } from 'react-router'
 import { ShieldCheck } from 'lucide-react'
 import type { VariantProps } from 'class-variance-authority'
+import Logo from '../logo'
 
 type LogoButtonProps = React.ComponentProps<"button"> & {
   logo?: boolean
@@ -28,9 +29,8 @@ export default function LogoButton({
   return (
     <Button asChild variant="ghost" size={size} className={`flex hover:bg-transparent dark:hover:bg-transparent items-center gap-2 ${className}`} {...props}>
       <Link to="/">
-
-          <ShieldCheck className={` ${size ? logoSizes[size] : ''}  min-w-7 text-primary`} />
-          MUNITORUM
+        <Logo className={`${logoSizes[size || "lg"]}`} />
+        MUNITORUM
       </Link>
     </Button>
   )
