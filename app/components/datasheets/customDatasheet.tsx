@@ -150,7 +150,7 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions, class
         <CollapsibleContent className='w-full flex flex-col mt-6'>
           {/* <Separator className='mb-2' /> */}
           <div className="overflow-x-auto gap-2 flex flex-col">
-            <div className='flex flex-row flex-grow gap-2 justify-evenly'>
+            <div className='flex flex-row flex-grow gap-2 md:gap-4 justify-center'>
               {Object.keys(datasheet.stats).filter(omitKeys).map((key) => (
                 <div key={key} className=" flex flex-col text-center justify-center">
                   <Label htmlFor={key} className='mb-1 text-center text-xs sm:text-sm flex justify-center'>

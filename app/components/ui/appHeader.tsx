@@ -31,8 +31,8 @@ export default function AppHeader() {
   ]
 
   return (
-    <header className="sticky top-0 z-20 w-full mask-to-t border-accent backdrop-blur-sm">
-      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-center px-6 ">
+    <header className="sticky px-6 top-0 z-20 w-full mask-to-t border-accent backdrop-blur-sm">
+      <div className="container flex h-16 max-w-7xl mx-auto items-center justify-center  ">
         <div className='flex flex-1'>
           <LogoButton size="lg" />
           {/* Desktop Navigation */}

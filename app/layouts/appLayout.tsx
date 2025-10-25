@@ -3,7 +3,7 @@ import AppHeader from "~/components/ui/appHeader";
 
 export default function AppLayout() {
   return (
-    <div className="flex flex-col min-h-screen min-w-screen">
+    <div className="flex flex-col min-h-screen  min-w-screen">
       <AppHeader />
       <main className="flex flex-col p-6 bg-background justify-center max-w-screen sm:max-w-full mb-auto w-full">
         <Outlet />

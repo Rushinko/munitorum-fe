@@ -39,9 +39,10 @@ export type WeaponProfile = {
   strength: number;
   armorPenetration: number;
   damage: string;
+  modifiers: [DatasheetModifiers] | [];
 };
 
-export type WeaponStats = Omit<WeaponProfile, 'id'>;
+export type WeaponStats = Omit<WeaponProfile, 'id' | 'name' | 'modifiers'>;
 
 export type DatasheetActions = {
   updateDatasheet: (datasheetId: string, data: Partial<Datasheet>) => void;

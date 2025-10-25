@@ -47,10 +47,10 @@ const DatasheetList = ({ datasheets, datasheetActions }: { datasheets: Datasheet
 const AttackerDefenderCard = ({ title, onAdd, children }: { title: string, onAdd: () => void, children: React.ReactNode }) => {
   return (
     <div className="flex flex-1 max-w-full md:max-w-xl sm:w-xl xl:max-w-full h-fit min-w-sm flex-col gap-4">
-      <h2 className=" text-xl font-bold sm:ml-2 self-start">{title}
+      <h2 className=" text-xl font-bold sm:ml-2 self-start sm:items-center flex flex-row">{title}
         <Button className=" hidden sm:flex ml-2 border-border border" variant="secondary" onClick={onAdd}><PlusIcon /></Button>
       </h2>
-      <Button className="sm:ml-2 text-md md:hidden border-border border" variant="secondary" onClick={onAdd}>{`Add ${title}`}<PlusIcon /></Button>
+      <Button className="sm:ml-2 text-md sm:hidden border-border border" variant="secondary" onClick={onAdd}>{`Add ${title}`}<PlusIcon /></Button>
       {children}
     </div>
   );
@@ -80,6 +80,7 @@ export default function Calculator(props: Route.ComponentProps) {
   const handleCalculate = () => {
     const attacker = datasheets.find(ds => attackerIds.includes(ds.id));
     const defender = datasheets.find(ds => defenderIds.includes(ds.id));
+    console.log('Calculating with attackers:', attacker, 'and defenders:', defender);
     if (attacker && defender) {
       const results = runCalculation(datasheets.filter(ds => attackerIds.includes(ds.id)), datasheets.filter(ds => defenderIds.includes(ds.id)), modifiers);
       if (results === null) {
@@ -127,7 +128,7 @@ export default function Calculator(props: Route.ComponentProps) {
 
         </CardFooter>
       </div >
-      {
+      {/* {
         results && (
           <Card>
             <CardHeader>
@@ -139,7 +140,7 @@ export default function Calculator(props: Route.ComponentProps) {
             </CardContent>
           </Card>
         )
-      }
+      } */}
     </div >
   );
 }
