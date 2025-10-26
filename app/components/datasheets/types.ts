@@ -22,6 +22,16 @@ export type DatasheetModifiers = {
   devastatingWounds: boolean;
 }
 
+export type WeaponProfileModifiers = {
+  twinLinked: boolean;
+  lethalHits: boolean;
+  devastatingWounds: boolean;
+  sustainedHits: number;
+  criticalWounds: number;
+}
+
+export type ConsolidatedModifiers = DatasheetModifiers & WeaponProfileModifiers;
+
 export type DatasheetStats = {
   movement: number;
   toughness: number;
@@ -39,7 +49,7 @@ export type WeaponProfile = {
   strength: number;
   armorPenetration: number;
   damage: string;
-  modifiers: [DatasheetModifiers] | [];
+  modifiers: Partial<WeaponProfileModifiers>;
 };
 
 export type WeaponStats = Omit<WeaponProfile, 'id' | 'name' | 'modifiers'>;
@@ -53,6 +63,8 @@ export type DatasheetActions = {
   removeWeaponProfile: (datasheetId: string, profileId: string) => void;
   updateWeaponProfile: (datasheetId: string, profileId: string, field: keyof Omit<WeaponProfile, 'id'>, value: string | number) => void;
 }
+
+
 
 const defaultDatasheetStat: DatasheetStats = {
   movement: 0,
@@ -75,6 +87,14 @@ export const defaultDatasheetModifiers: DatasheetModifiers = {
   criticalHits: 0,
   criticalWounds: 0,
   devastatingWounds: false,
+}
+
+export const defaultWeaponProfileModifiers: WeaponProfileModifiers = {
+  twinLinked: false,
+  lethalHits: false,
+  devastatingWounds: false,
+  sustainedHits: 0,
+  criticalWounds: 0,
 }
 
 export const defaultDatasheet: Omit<Datasheet, 'id'> = {

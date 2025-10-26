@@ -75,6 +75,11 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions, class
     updateWeaponProfile(datasheet.id, id, field, valueToUse);
   };
 
+  const handleWeaponModifiersUpdate = (id: string, value: any) => {
+    console.log('Updating weapon modifiers for profile:', id, value);
+    updateWeaponProfile(datasheet.id, id, 'modifiers', value);
+  };
+
   /**
    * Adds a new, empty weapon profile to the end of the list.
    * The newProfile object must conform to the WeaponProfile interface.
@@ -169,7 +174,12 @@ const DatasheetCard: React.FC<DatasheetCardProps> = ({ datasheet, actions, class
             </div>
             {
               weaponProfiles.length > 0 && (
-                <WeaponProfilesTable profiles={weaponProfiles} onProfileChange={handleWeaponProfileUpdate} onProfileRemove={removeProfile} />
+                <WeaponProfilesTable
+                  profiles={weaponProfiles}
+                  onProfileChange={handleWeaponProfileUpdate}
+                  onModifierChange={handleWeaponModifiersUpdate}
+                  onProfileRemove={removeProfile}
+                />
               )
             }
           </div>

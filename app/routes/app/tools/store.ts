@@ -69,7 +69,25 @@ const useToolsStore = create<ToolsStore>()(immer((set) => ({
     addWeaponProfile: (datasheetId) => set(state => ({
       datasheets: state.datasheets.map(ds =>
         ds.id === datasheetId
-          ? { ...ds, weaponProfiles: [...ds.weaponProfiles, { id: uuidv4(), name: '', attacks: 0, weaponSkill: 0, strength: 0, armorPenetration: 0, damage: '0' }] }
+          ? {
+            ...ds, weaponProfiles: [...ds.weaponProfiles,
+            {
+              id: uuidv4(),
+              name: '',
+              attacks: '0',
+              weaponSkill: 0,
+              strength: 0,
+              armorPenetration: 0,
+              damage: '0',
+              modifiers: {
+                twinLinked: false,
+                lethalHits: false,
+                devastatingWounds: false,
+                sustainedHits: 0,
+                criticalWounds: 0,
+              },
+            }]
+          }
           : ds
       )
     })),
@@ -79,12 +97,14 @@ const useToolsStore = create<ToolsStore>()(immer((set) => ({
       datasheet.weaponProfiles = datasheet.weaponProfiles.filter(p => p.id !== profileId);
     }),
     updateWeaponProfile: (datasheetId, profileId, field, value) => {
+      console.log('Updating weapon profile:', datasheetId, profileId, field, value);
       set(state => {
         const datasheet = state.datasheets.find(ds => ds.id === datasheetId);
         if (!datasheet) return;
         const profile = datasheet.weaponProfiles.find(p => p.id === profileId);
         if (!profile) return;
         (profile[field] as typeof value) = value;
+        console.log(profile[field]);
       })
     }
   },

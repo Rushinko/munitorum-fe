@@ -67,3 +67,30 @@ export function formatNumber(num: number, decimals?: number, formatString?: stri
     maximumFractionDigits: 2,
   }).format(num);
 }
+
+/**
+ * Compares two objects and returns an object of the differences.
+ * This is a "shallow" comparison.
+ */
+export function findDiff(obj1: Record<string, any>, obj2: Record<string, any>) {
+  const diff = {} as Record<string, { from: any; to: any }>;
+  // Get all unique keys from both objects
+  const allKeys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
+
+  for (const key of allKeys) {
+    // 1. Key was added (exists in obj2 but not obj1)
+    if (!obj1.hasOwnProperty(key)) {
+      diff[key as keyof typeof obj2] = { from: undefined, to: obj2[key] };
+    } 
+    // 2. Key was removed (exists in obj1 but not obj2)
+    else if (!obj2.hasOwnProperty(key)) {
+      diff[key as keyof typeof obj1] = { from: obj1[key], to: undefined };
+    } 
+    // 3. Key was modified (exists in both but values are different)
+    else if (obj1[key] !== obj2[key]) {
+      diff[key as keyof typeof obj1] = { from: obj1[key], to: obj2[key] };
+    }
+  }
+  
+  return diff;
+}

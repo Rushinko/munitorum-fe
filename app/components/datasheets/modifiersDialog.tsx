@@ -1,16 +1,33 @@
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
 import React from 'react'
 import { Edit } from 'lucide-react'
-import { defaultDatasheetModifiers, type DatasheetModifiers } from './types'
+import { defaultDatasheetModifiers, defaultWeaponProfileModifiers, type DatasheetModifiers, type WeaponProfile, type WeaponProfileModifiers } from './types'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { Checkbox } from '../ui/checkbox'
+import { Toggle } from '../ui/toggle'
 
-export default function ModifiersDialog() {
-  const modifiers: DatasheetModifiers = defaultDatasheetModifiers
+type ModifierDialogProps = {
+  modifiers: Partial<WeaponProfileModifiers>;
+  id: string
+  updateModifier: (key: string, value: any) => void;
+}
+
+export default function ModifiersDialog({ modifiers, id, updateModifier }: ModifierDialogProps) {
+
+  const handleUpdateModifier = (key: string, value: any) => {
+    const newModifiers = { ...modifiers, [key]: value };
+    updateModifier(id, newModifiers);
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button className="text-sm underline underline-offset-4"><Edit size={16} /></button>
+        <Button variant="ghost" className="text-xs underline w-8 underline-offset-4"><Edit size={12} /></Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg ">
+      <DialogContent className="max-w-xl ">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">Modifiers</DialogTitle>
         </DialogHeader>
@@ -18,41 +35,34 @@ export default function ModifiersDialog() {
 
           {
             Object.keys(modifiers).map((key) => (
-              <div key={key} className="flex flex-row gap-2 space-x-2  rounded-lg p-2 items-center text-center mb-4">
-                <label htmlFor={key} className='mb-1 text-end flex justify-end '>
-                  {key}
-                </label>
-                {typeof modifiers[key as keyof DatasheetModifiers] === 'boolean' ? (
-                  <input
+              <div key={key} className="flex flex-row gap-2 rounded-lg p-2 items-center text-center mb-4">
+                {typeof modifiers[key as keyof WeaponProfileModifiers] === 'boolean' ? (
+                  <Toggle
+                    aria-label={key}
+                    className='data-[state=on]:bg-primary data-[state=off]:bg-muted h-8 px-3 rounded-lg'
                     id={key}
                     name={key}
-                    type="checkbox"
-                    value={modifiers[key as keyof DatasheetModifiers] as unknown as string}
-                    checked={modifiers[key as keyof DatasheetModifiers] as boolean}
-                    onChange={(e) => console.log(key, e.target.checked)}
-                  />
-                ) : typeof modifiers[key as keyof DatasheetModifiers] === 'number' ? (
-                  <input
-                    id={key}
-                    name={key}
-                    type="number"
-                    className='max-w-12 flex text-center border border-input rounded px-2 py-1'
-                    value={modifiers[key as keyof DatasheetModifiers] as number}
-                    onChange={(e) => console.log(key, parseInt(e.target.value, 10))}
-                  />
-                ) : (
-                  <select
-                    value={modifiers[key as keyof DatasheetModifiers] as string}
-                    onChange={(e) => console.log(key, e.target.value)}
-                    className='w-24 max-w-24 border border-input rounded px-2 py-1'
+                    pressed={modifiers[key as keyof WeaponProfileModifiers] as boolean}
+                    onPressedChange={(value) => handleUpdateModifier(key, value)}
                   >
-                    <option value="none">None</option>
-                    <option value="fails">Fails</option>
-                    <option value="ones">Ones</option>
-                    {
-                      key !== 'rerollSaves' && <option value="non-crits">Non-Crits</option>
-                    }
-                  </select>
+                    {key}
+                  </Toggle>
+                ) : typeof modifiers[key as keyof WeaponProfileModifiers] === 'number' ? (
+                  <>
+                    <Label htmlFor={key} className='mb-1 text-end text-sm flex justify-end '>
+                      {key}
+                    </Label>
+                    <Input
+                      id={key}
+                      name={key}
+                      type="number"
+                      className='max-w-12 flex text-center border border-input rounded px-2 py-1'
+                      value={modifiers[key as keyof WeaponProfileModifiers] as number}
+                      onChange={(e) => handleUpdateModifier(key, parseInt(e.target.value) || 0)}
+                    />
+                  </>
+                ) : (
+                  null
                 )}
               </div>
             ))
@@ -60,7 +70,7 @@ export default function ModifiersDialog() {
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition">Save</button>
+            <Button size="default">Save</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

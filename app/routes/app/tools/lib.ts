@@ -1,6 +1,7 @@
 import type { CalculationResult, VariableDiceResult } from "~/components/calculator/types";
 import type { Datasheet, DatasheetModifiers, WeaponProfile } from "~/components/datasheets/types";
 import { calculateAttackSequence, calculateVariableAttackSequence, parseDice } from "~/lib/calculatorUtils";
+import { calculateConsolidatedModifiers } from "~/lib/datasheetUtils";
 import { convolve, convolvePower, getBinomialDistribution, getConvolvedDistribution, getCumulativeProbabilities, getDiceProbabilities, getDiceSumDistribution, trimInsignificantProbabilities, valueToTarget, type DiceProbability } from "~/lib/probability";
 
 type SaveStageResult = {
@@ -44,6 +45,7 @@ export const runCalculation = (attackers: Datasheet[], defenders: Datasheet[], m
         const effectiveSave = Math.min(defender.stats.save + Math.abs(weapon.armorPenetration), defender.stats.invulnerableSave === 0 ? 7 : defender.stats.invulnerableSave);
         const woundTarget = getWoundTarget(weapon.strength, defender.stats.toughness, modifiers);
         const hitTarget = Math.max(2, Math.min(6, weapon.weaponSkill - (modifiers.hitModifier || 0)));
+        const consolidatedModifiers = calculateConsolidatedModifiers(modifiers, weapon.modifiers);
         let result: CalculationResult;
         if (isVariableAttacks) {
           result = calculateVariableAttackSequence(
@@ -55,7 +57,7 @@ export const runCalculation = (attackers: Datasheet[], defenders: Datasheet[], m
             hitTarget,
             woundTarget,
             effectiveSave,
-            modifiers
+            consolidatedModifiers
           );
         }
         else {
@@ -68,7 +70,7 @@ export const runCalculation = (attackers: Datasheet[], defenders: Datasheet[], m
             hitTarget,
             woundTarget,
             effectiveSave,
-            modifiers
+            consolidatedModifiers
           );
         }
         
